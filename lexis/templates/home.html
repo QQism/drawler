@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block css %}
+{% endblock %}
+{% load i18n %}
+{% block content %}
+<div class="row-fluid">
+    <div class="span12 hero-unit">
+        <form action="/lexis/search" method="post">
+            {% csrf_token %}
+            <input name="keywords" type="text" placeholder="Nhập từ hay loại cụm từ cần tìm" style="width: 100%"><br/>
+            <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+        </form>
+        {% if mean_words %}
+        <h3>{{ keywords }}</h3>
+        <ul>
+            {% for mean_word in mean_words %}
+            <li>
+            <a href="{% url lexis:get_phrases mean_word_id=mean_word.id %}"><span>{{ mean_word }}</span></a><br/>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if phrases %}
+        <ul>
+            {% for phrase, key in phrases %}
+            <li>
+            {{ key }}
+            <span>
+                {% for child in phrase %}
+                <a rel='tooltip' data-original-title="{{ child.word.category.code }}" href="{% url lexis:get_phrases mean_word_id=child.word.id %}">{{ child.word.word.plain }}</a>
+                {% endfor %}
+            </span>
+            </li>
+            {% endfor %}
+        </ul>
+        <div class="pagination">
+            <span class='step-links'>
+                {% if phrases.has_previous %}
+                <a href='?page={{ phrases.previous_page_number }}'>previous</a>
+                {% endif %}
+                <span class='current'>
+                    Page {{ phrases.number }} of {{ phrases.paginator.num_pages }}.
+                </span>
+
+                {% if phrases.has_next %}
+                <a href='?page={{phrases.next_page_number }}'>next</a>
+                {% endif %}
+            </span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+{% block javascript %}
+<script type='text/javascript'>
+(function() {
+    $('[rel=tooltip]').tooltip();
+}).call(this);
+</script>
+{% endblock %}

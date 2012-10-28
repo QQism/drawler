@@ -3,7 +3,7 @@ import os
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 
 try:
-    from local_settings import *
+    from tiengviet.local_settings import *
 except ImportError:
     pass
 
@@ -57,6 +57,8 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    os.path.join(PROJECT_ROOT, 'assets'),
+    os.path.join(PROJECT_ROOT, 'lexis','assets'),
 )
 
 # List of finder classes that know how to find static files in
@@ -96,6 +98,10 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    os.path.join(PROJECT_ROOT, 'lexis', 'templates'),
+    os.path.join(PROJECT_ROOT, 'tiengviet', 'templates'),
+    os.path.join(PROJECT_ROOT, 'scraper', 'templates'),
+    os.path.join(PROJECT_ROOT, 'templates'),
 )
 
 INSTALLED_APPS = (
@@ -105,11 +111,15 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'south',
     # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
+    'django.contrib.admin',
+    'django_extensions',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+    'south',
+    'treebeard',
+    'lexis',
+    'scraper',
 )
 
 # A sample logging configuration. The only tangible logging

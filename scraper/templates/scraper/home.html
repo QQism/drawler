@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block css %}
+{% endblock %}
+{% load i18n %}
+{% block content %}
+<div class="row-fluid">
+    <div class="span12 hero-unit">
+        <ul>
+        {% if profiles %}
+        {% for site in profiles %}
+        <li><a href="{% url scraper:site_profile site.pk %}">{{ site }}</a></li>
+        {% endfor %}
+        {% endif %}
+    </ul>
+    </div>
+</div>
+{% endblock %}

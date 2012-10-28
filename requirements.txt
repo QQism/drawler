@@ -1,0 +1,11 @@
+Django==1.4.1
+South==0.7.6
+dj-database-url==0.2.1
+ipython==0.13
+openpyxl==1.5.8
+psycopg2==2.4.5
+python-dateutil==2.1
+pytz==2012d
+readline==6.2.2
+six==1.2.0
+wsgiref==0.1.2
