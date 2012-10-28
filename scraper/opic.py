@@ -172,7 +172,7 @@ def build_full_url(url_string, current_url):
     else:
         full_url = u''.join([current_url.scheme, '://',
                              current_url.netloc,
-                             current_url.path, '/',
+                             current_url.path,
                              url_string])
     return full_url
 

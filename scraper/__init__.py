@@ -14,7 +14,8 @@ class Scraper(object):
     default_user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.4 (KHTML, like Gecko) Chrome/22.0.1229.94 Safari/537.4'
     default_url = 'http://www.example.com'
 
-    def __init__(self, base_url=default_url, user_agent=default_user_agent, debug=False):
+    def __init__(self, base_url=default_url,
+                 user_agent=default_user_agent, debug=False):
 
         self.br = mechanize.Browser()
         self.br.set_cookiejar(Scraper.get_cookie())
@@ -84,12 +85,22 @@ class Scraper(object):
         cls.cookie.save(cls.COOKIEFILE)
         return cls.cookie
 
-demo_template = "<div class='boxMnuMainTop'><ul id='MainMnu'><getme/></ul></div><span><getme/></span>"
+demo_template = "<authentication>" +\
+        "<form>" +\
+        "<input name ='' value=''/>" +\
+        "<input name ='' value=''/>" +\
+        "</form>" +\
+        "</authentication>" +\
+        "<extraction>" +\
+        "<div class='boxMnuMainTop'>" +\
+        "<ul id='MainMnu'><getme/></ul></div><span><getme/></span>" +\
+        "</extraction>"
 demo_document = "<html><head></head><div class='boxMnuMainTop'><ul id='MainMnu'>ACK</ul></div></html>"
 
 class TemplateProcessor(object):
     """
     create an instructions array from the template
+    TODO login
     """
 
     def __init__(self, template):
@@ -100,6 +111,7 @@ class TemplateProcessor(object):
 
         for getme in self.template.find_all('getme'):
             parent_nodes = getme.find_parents()
+            parent_nodes.pop() # pop out the last, which is *not* a Tag object
             parent_nodes.pop() # pop out the last, which is *not* a Tag object
             parent_nodes.reverse()
             self.instructions.append(parent_nodes)
