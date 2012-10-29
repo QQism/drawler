@@ -1,7 +1,13 @@
 import time
+import random
 
-def generate_graph(count):
-    pass
+def generate_node(graph):
+    """
+    Random name, Random chidlren name
+    Avoid using existing name
+    name = letter + number
+    """
+    random
 
 def visit_link(node):
     return tuple(node['children'])
@@ -52,6 +58,11 @@ def compute_importance(node, history):
     return importance
 
 def start():
+    """
+    Crawl pages, and get the new pages. Dont crawl or distribute cash to 
+    its immediately, wait to the next crawling time.
+    Just distribute cash to current pages
+    """
     history = 0
     demo_graph = [
         {'name': 'a', 'content': 'honey money', 'children': ['b', 'c'],},
