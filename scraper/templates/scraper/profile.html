@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block css %}
+{% endblock %}
+{% load i18n %}
+{% block content %}
+<div class="row-fluid">
+    <div class="span12 hero-unit">
+        {% if profile %}
+        <h2><a href="{{ profile.url }}">{{ profile.name }}</a></h2>
+        <form action='{% url scraper:scrape profile.pk %}' method='POST'>
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type='submit' value='Scrape'/>
+        </form>
+        {% endif %}
+    </div>
+    <div class='row-fluid'>
+        <table class='table table-bordered' id='scraping-pages-tables'>
+            <thead>
+                <tr>
+                    <th>Link</th>
+                    <th>Cash</th>
+                    <th>Importance</th>
+                    <th>Content</th>
+                </tr>
+            </thead>
+            <tbody id='scraping-pages'>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+{% block javascript %}
+<script>
+(function () {
+    function update_pages(){
+    //console.log('ookkk');
+    }
+
+    function refresh_table(){
+
+    }
+
+    setInterval(update_pages, 2000)
+}).call(this);
+</script>
+{% endblock %}
