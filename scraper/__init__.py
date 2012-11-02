@@ -112,7 +112,7 @@ class TemplateProcessor(object):
         for getme in self.template.find_all('getme'):
             parent_nodes = getme.find_parents()
             parent_nodes.pop() # pop out the last, which is *not* a Tag object
-            parent_nodes.pop() # pop out the last, which is *not* a Tag object
+            #parent_nodes.pop() # pop out the last, which is *not* a Tag object
             parent_nodes.reverse()
             self.instructions.append(parent_nodes)
 
@@ -123,7 +123,7 @@ class TemplateProcessor(object):
         soup = BeautifulSoup(document)
         total_contents = []
         for instruction in self.instructions:
-            print instruction
+            #print instruction
             contents = self.call_childnode(soup, instruction, 0)
             if contents:
                 total_contents.append(self.dearray(contents))
@@ -131,7 +131,7 @@ class TemplateProcessor(object):
         return self.dearray(total_contents)
 
     def call_childnode(self, node, instruction, level):
-        print node, level
+        #print node, level
         if len(instruction) == level:
             return node.text
         else:
