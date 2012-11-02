@@ -252,12 +252,6 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
     """
     DEBUG = debug
     history = 0
-    demo_graph = [
-        {'name': 'a', 'content': 'honey money', 'children': ['b', 'c'],},
-        {'name': 'b', 'content': 'money money', 'children': ['a',]},
-        {'name': 'c', 'content': 'honey honey', 'children': ['a',]},
-        {'name': 'd', 'content': 'honey honey honey', 'children': ['a', 'b']},
-    ]
 
     scraper = Scraper()
     if name:
