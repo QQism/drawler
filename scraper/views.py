@@ -1,7 +1,7 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from models import ScraperProfile
-from scraper import Scraper, TemplateProcessor
+from . import Scraper, TemplateProcessor
 
 def home(request):
     """
@@ -21,3 +21,8 @@ def extract(request, scraper_profile_id):
 
     """
     pass
+
+def update_progress(request):
+    """
+    """
+    return
