@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 import time
 from random import randrange
 import re
 from bs4 import BeautifulSoup as Soup
 from . import Scraper, TemplateProcessor
+import re
 
 try:
     from urllib.parse import urlparse
@@ -74,6 +76,7 @@ def generate_new_node(graph, name='', children_range=(0, 10), non_children=False
         'children': children,
         'visited': False,
         'history': 0.0,
+        'keywords_count': 0,
         'cache': []
     }
 
@@ -228,9 +231,23 @@ def merge_graph(g1, g2):
     [merge_node(n1, n2) for n1 in g1 for n2 in g2 if n1['name'] == n2['name']]
     return g1
 
+def build_keywords_re(keywords):
+    kw = ur'|'.join(keywords)
+    return re.compile(ur'(' + kw + ')', re.UNICODE + re.IGNORECASE)
+
+def keywords_occurances(node, keywords_re):
+    try:
+        node['keywords_count'] = len(keywords_re.findall(node.setdefault('content', '')))
+    except Exception as ex:
+        log(ex)
+        log(node['name'])
+        log(node.setdefault('content', ''))
+        node['keywords_count'] = 0
+
+    return node['keywords_count']
 
 def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
-          max_nodes=200, max_added_nodes=50,debug=True):
+          max_nodes=100, max_added_nodes=50, keywords=(u'mỹ',), debug=True):
     """
     Crawl pages, and insert new pages into a frontier set. Dont crawl it
     immediately, wait for the next time
@@ -272,6 +289,8 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
     template_processor = TemplateProcessor(template)
     max_added_nodes # how many nodes added per crawling
     max_nodes # soft limit
+    kw_re = build_keywords_re(keywords)
+    total_occurances = 0
     while True:
         t += 1
         #time.sleep(3)
@@ -280,8 +299,12 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
         log([x['name'] for x in graph])
         last_node = None
         while True:
+            """" the select node that has most cash """
             node = max(graph, key=lambda x: x['cash'])
             if node == last_node or node['cash'] == 0:
+                """
+                All cash has been distributed
+                """
                 break # break the loop, add more frontiers
             else:
                 last_node = node
@@ -292,7 +315,6 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
 
             if node.has_key('raw_content') and not node.has_key('content'):
                 node['content'] = template_processor.extract(node['raw_content'])
-                log(node['content'])
 
         log('History :' + str(history))
         total_importance = sum([compute_importance(node, history) for node in graph])
@@ -307,6 +329,11 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
                             reverse=True)
         graph_size = len(graph)
         if graph_size + max_added_nodes > max_nodes:
+            """
+            we hit the upper bound
+            Try to calculate the keyword points
+            """
+            total_occurances += sum([keywords_occurances(node, kw_re) for node in graph])
             break
         else:
             graph.extend(frontiers[0:max_added_nodes])
@@ -315,6 +342,8 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
 
     log([x['name'] for x in graph])
     for x in graph:
-        if x.has_key('content') and x['content']:
+        if x.has_key('content') and x['content'] and x['keywords_count'] > 0:
             log(x['content'])
+            log(x['keywords_count'])
+    return total_occurances
     #return graph
