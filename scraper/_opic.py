@@ -3,7 +3,7 @@ import time
 from random import randrange
 import re
 from bs4 import BeautifulSoup as Soup
-from . import Scraper
+from . import Scraper, TemplateProcessor
 
 try:
     from urllib.parse import urlparse
@@ -119,7 +119,8 @@ def visit_link(node, scraper=None, children_url_re=None):
         try:
             response = scraper.goto(node['name'])
             soup = Soup(response)
-            #node['content'] = soup.text
+            node['raw_content'] = response
+
             # internal pages
             node['children'] = [build_full_url(a_tag.get('href'),
                                             node['url'])
@@ -228,7 +229,8 @@ def merge_graph(g1, g2):
     return g1
 
 
-def start(name='tuoitre.vn'):
+def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
+          max_nodes=200, max_added_nodes=50,debug=True):
     """
     Crawl pages, and insert new pages into a frontier set. Dont crawl it
     immediately, wait for the next time
@@ -248,6 +250,7 @@ def start(name='tuoitre.vn'):
     Set an interval for all pages to be re-fetched
     Dont fetch pages that
     """
+    DEBUG = debug
     history = 0
     demo_graph = [
         {'name': 'a', 'content': 'honey money', 'children': ['b', 'c'],},
@@ -255,9 +258,14 @@ def start(name='tuoitre.vn'):
         {'name': 'c', 'content': 'honey honey', 'children': ['a',]},
         {'name': 'd', 'content': 'honey honey honey', 'children': ['a', 'b']},
     ]
+
     scraper = Scraper()
     if name:
-        graph = [{'name': 'http://' + name}]
+        if name.count('http://') or name.count('https://'):
+            start_name = name
+        else:
+            start_name = 'http://' + name
+        graph = [{'name': start_name}]
         children_url_re = re.compile(
             r'^((http|https)://.*' + name + '|(?!(http://|https://|javascript:)))')
 
@@ -266,8 +274,10 @@ def start(name='tuoitre.vn'):
     frontiers = []
     t = 0
     log(graph)
-    max_added_nodes = 50 # how many nodes added per crawling
-    max_nodes = 100 # soft limit
+
+    template_processor = TemplateProcessor(template)
+    max_added_nodes # how many nodes added per crawling
+    max_nodes # soft limit
     while True:
         t += 1
         #time.sleep(3)
@@ -285,6 +295,10 @@ def start(name='tuoitre.vn'):
             history += distribute_cash(graph, frontiers, node,
                                        scraper,
                                        children_url_re)
+
+            if node.has_key('raw_content') and not node.has_key('content'):
+                node['content'] = template_processor.extract(node['raw_content'])
+                log(node['content'])
 
         log('History :' + str(history))
         total_importance = sum([compute_importance(node, history) for node in graph])
@@ -306,4 +320,7 @@ def start(name='tuoitre.vn'):
         #raw_input()
 
     log([x['name'] for x in graph])
+    for x in graph:
+        if x.has_key('content') and x['content']:
+            log(x['content'])
     #return graph
