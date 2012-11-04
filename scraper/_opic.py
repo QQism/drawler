@@ -4,7 +4,7 @@ import time
 from random import randrange
 import re
 from bs4 import BeautifulSoup as Soup
-from . import Scraper, TemplateProcessor
+from . import Crawler, TemplateProcessor
 import re
 
 try:
@@ -31,8 +31,6 @@ IGNORE_RE = re.compile(r'^(http|https)://.*\.(' +
 
 FULL_URL_RE = re.compile(r'^(http|https)://.*')
 
-SCRAPER = Scraper()
-
 def log(*args, **kwargs):
     if DEBUG:
         print(*args, **kwargs)
@@ -48,7 +46,7 @@ def generate_node_name(graph, non_existed=True):
     e.g: aaa
     """
     while True:
-        node_name = ''.join([chr(randrange(97, 122)) for i in range(3)])
+        node_name = ''.join([chr(randrange(97, 122)) for i in range(1)])
         if non_existed and get_node(graph, node_name):
             continue
         else:
@@ -112,24 +110,24 @@ def build_full_url(url_string, current_url):
     #log('xxxxxxx')
     return full_url
 
-def visit_link(node, scraper=None, children_url_re=None):
+def visit_link(node, crawler=None, children_url_re=None):
     """
     In practice, this is the fetching function
     Need to be Cached
     """
-    if scraper is not None:
+    if crawler is not None:
         node['url'] = urlparse(node['name'])
         try:
-            response = scraper.goto(node['name'])
+            response = crawler.goto(node['name'])
             soup = Soup(response)
             node['raw_content'] = response
 
             # internal pages
             node['children'] = [build_full_url(a_tag.get('href'),
-                                            node['url'])
-                             for a_tag in soup.find_all('a',
-                                                        href=children_url_re
-                                                       )]
+                                               node['url'])
+                                for a_tag in soup.find_all('a',
+                                                           href=children_url_re
+                                                          )]
         except Exception as ex:
             log(node['name'], ex)
             node['children'] = []
@@ -160,7 +158,7 @@ def update_node_cash(node, cash):
     node['cash'] += cash
     #return node
 
-def distribute_cash(graph, frontiers, node, scraper, children_url_re):
+def distribute_cash(graph, frontiers, node, crawler, children_url_re):
     """
     Distribute cash to children links
     """
@@ -174,7 +172,7 @@ def distribute_cash(graph, frontiers, node, scraper, children_url_re):
             child_cash = node['cash'] / l
             [update_node_cash(child, child_cash) for child in node['cache']]
     else:
-        children = visit_link(node, scraper, children_url_re)
+        children = visit_link(node, crawler, children_url_re)
         l = len(children)
         if l > 0:
             child_cash = node['cash'] / l
@@ -247,7 +245,8 @@ def keywords_occurances(node, keywords_re):
     return node['keywords_count']
 
 def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
-          max_nodes=100, max_added_nodes=50, keywords=(u'mỹ',), debug=True):
+          max_nodes=100, max_added_nodes=50, keywords=(u'trung quốc',),
+          fake=False, debug=True):
     """
     Crawl pages, and insert new pages into a frontier set. Dont crawl it
     immediately, wait for the next time
@@ -270,7 +269,7 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
     DEBUG = debug
     history = 0
 
-    scraper = Scraper()
+    crawler = Crawler()
     if name:
         if name.count('http://') or name.count('https://'):
             start_name = name
@@ -281,6 +280,7 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
             r'^((http|https)://.*' + name + '|(?!(http://|https://|javascript:)))')
 
     else:
+        children_url_re = None
         graph = generate_graph()
     frontiers = []
     t = 0
@@ -310,7 +310,7 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
                 last_node = node
 
             history += distribute_cash(graph, frontiers, node,
-                                       scraper,
+                                       crawler,
                                        children_url_re)
 
             if node.has_key('raw_content') and not node.has_key('content'):
@@ -328,19 +328,27 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
                             key=lambda x: x.setdefault('cash', 0),
                             reverse=True)
         graph_size = len(graph)
-        if graph_size + max_added_nodes > max_nodes:
+        available_added_nodes = max_nodes - graph_size
+        if available_added_nodes == 0:
             """
             we hit the upper bound
             Try to calculate the keyword points
             """
             total_occurances += sum([keywords_occurances(node, kw_re) for node in graph])
             break
+        elif max_added_nodes > available_added_nodes:
+            graph.extend(frontiers[0:available_added_nodes])
         else:
             graph.extend(frontiers[0:max_added_nodes])
 
         #raw_input()
 
-    log([x['name'] for x in graph])
+    graph = sorted(graph,
+                   key=lambda x: x.setdefault('importance', 0),
+                   reverse=True)
+
+    log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
+    [log(x['name'], x['importance']) for x in graph]
     for x in graph:
         if x.has_key('content') and x['content'] and x['keywords_count'] > 0:
             log(x['content'])

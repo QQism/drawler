@@ -6,7 +6,7 @@ import gzip
 from bs4 import BeautifulSoup
 #import pdb; pdb.set_trace()
 
-class Scraper(object):
+class Crawler(object):
     cookie = None
     response = None
     base_url = ''
@@ -18,9 +18,9 @@ class Scraper(object):
                  user_agent=default_user_agent, debug=False):
 
         self.br = mechanize.Browser()
-        self.br.set_cookiejar(Scraper.get_cookie())
+        self.br.set_cookiejar(Crawler.get_cookie())
         self.br.set_handle_equiv = True
-        self.br.set_handle_redirect = True
+        #self.br.set_handle_redirect(True)
         self.br.set_handle_referer = True
         self.br.set_handle_robots = False
 
@@ -59,7 +59,7 @@ class Scraper(object):
 
     def reload(self):
         self.response = self.process(self.br.open(self.base_url))
-        Scraper.save_cookie()
+        Crawler.save_cookie()
         return self.response
 
     def goto(self, url):

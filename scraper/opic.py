@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import re
-from scraper import Scraper
+from scraper import Crawler
 import operator
 from copy import copy
 from math import log
@@ -13,7 +13,7 @@ except ImportError:
 
 class PageNode(object):
 
-    __scraper = Scraper()
+    __scraper = Crawler()
 
     def __init__(self, url, cash=0.0, history=0.0):
         self.cash = cash
