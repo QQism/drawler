@@ -1,4 +1,5 @@
 from django.db import models
+from db import get_table
 
 class ScraperProfile(models.Model):
     name = models.CharField('Name', max_length=255, null=False, blank=False)
@@ -22,3 +23,39 @@ class ScraperProfile(models.Model):
 
     def __unicode__(self):
         return self.name + ': ' + self.url + ', ' + self.keywords_text
+
+class ScraperSession(models.Model):
+    
+    description = models.TextField()
+    max_nodes = models.IntegerField()
+    max_added_nodes = models.IntegerField()
+    timeout = models.IntegerField()
+    storage = get_table('websites')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save_node(self, data):
+        success = False
+        if isinstance(data, dict):
+            # this is the single node, in dictionary type
+            pass
+        elif hasattr(data, '__iter__'):
+            # list of nodes
+            nodes = data
+            with self.storage.batch(batch_size=1000) as b:
+                for node in nodes:
+                    try:
+                        b.put(node['url'],
+                          {'text:raw': node['raw_content'].encode('utf-8'),
+                           'text:content': node['content'].encode('utf-8'),
+                           'history:opic': node['importance'],
+                           'history:g': node['history'],
+                          }, timestamp=self.created_at)
+                    except Exception as e:
+                        print node
+                        print e
+        else:
+            success = False
+
+        return success
