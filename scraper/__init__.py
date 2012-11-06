@@ -4,7 +4,6 @@ import os
 from StringIO import StringIO
 import gzip
 from bs4 import BeautifulSoup
-#import pdb; pdb.set_trace()
 
 class Crawler(object):
     cookie = None
@@ -148,3 +147,5 @@ class TemplateProcessor(object):
         if isinstance(elements, list) and len(elements) == 1:
             return self.dearray(elements[0])
         return elements
+
+
