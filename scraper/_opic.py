@@ -39,8 +39,7 @@ def log(*args, **kwargs):
 # Generate graph code
 #
 def generate_node_name(graph, non_existed=True):
-    """
-    Random name, Random chidlren name
+    """Random name, Random chidlren name
     Avoid using existing name
     name = 3 random ASCII letters
     e.g: aaa
@@ -54,8 +53,7 @@ def generate_node_name(graph, non_existed=True):
     return node_name
 
 def generate_new_node(graph, name='', children_range=(0, 10), non_children=False):
-    """
-    Generate a new node with following properties:
+    """Generate a new node with following properties:
     - new name
     - children that links to, children nodes dont need to be another new node
 
@@ -79,8 +77,7 @@ def generate_new_node(graph, name='', children_range=(0, 10), non_children=False
     }
 
 def generate_graph(seed_count=1):
-    """
-    Generate a graph
+    """Generate a graph
     seed_count: number of starting nodes
     """
     graph = []
@@ -111,8 +108,7 @@ def build_full_url(url_string, current_url):
     return full_url
 
 def visit_link(node, crawler=None, children_url_re=None):
-    """
-    In practice, this is the fetching function
+    """In practice, this is the fetching function
     Need to be Cached
     """
     if crawler is not None:
@@ -140,8 +136,7 @@ def initial_values(node, node_count):
     return node
 
 def get_node(graph, name):
-    """
-    Get node in graph by name
+    """Get node in graph by name
     """
     for node in graph:
         if node['name'] == name:
@@ -152,15 +147,13 @@ def get_node(graph, name):
     return node
 
 def update_node_cash(node, cash):
-    """
-    Update cash to the node
+    """Update cash to the node
     """
     node['cash'] += cash
     #return node
 
 def distribute_cash(graph, frontiers, node, crawler, children_url_re):
-    """
-    Distribute cash to children links
+    """Distribute cash to children links
     """
     log('===========')
     log('Browsing ', node['name'])
@@ -196,8 +189,7 @@ def distribute_cash(graph, frontiers, node, crawler, children_url_re):
     return node['history']
 
 def classify_children(graph, children):
-    """
-    Check if there is new child, not including in the main graph, add it into
+    """Check if there is new child, not including in the main graph, add it into
     frontier set
     """
     existing_nodes = []
@@ -211,8 +203,7 @@ def classify_children(graph, children):
     return (existing_nodes, frontier_nodes)
 
 def compute_importance(node, history):
-    """
-    Calculate node importance
+    """Calculate node importance
     """
     importance = node['importance'] = (node['cash'] + node['history']) / (history + 1)
     log(node['name'] + ' importance: ' + str(importance))
@@ -223,8 +214,7 @@ def merge_node(n1, n2):
     n1['history'] += n2['history'] # useless in frontier, we never fetch the page
 
 def merge_graph(g1, g2):
-    """
-    update g1's nodes with g2's nodes
+    """update g1's nodes with g2's nodes
     """
     [merge_node(n1, n2) for n1 in g1 for n2 in g2 if n1['name'] == n2['name']]
     return g1
@@ -246,9 +236,8 @@ def keywords_occurances(node, keywords_re):
 
 def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
           max_nodes=100, max_added_nodes=50, keywords=(u'trung quốc',),
-          fake=False, debug=True):
-    """
-    Crawl pages, and insert new pages into a frontier set. Dont crawl it
+          writer=None, fake=False, debug=True):
+    """Crawl pages, and insert new pages into a frontier set. Dont crawl it
     immediately, wait for the next time
 
     Dont select all pages in frontier set, choose best/most popular pages
@@ -265,6 +254,19 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
     Fetching Policy:
     Set an interval for all pages to be re-fetched
     Dont fetch pages that
+
+    :param name: name and also the domain of the site need to be scraped
+    :param template: template is used to extract the content of a page in part
+    :param max_nodes: integer, maximum nodes(pages) that are allowed to be
+                      fetched, default is `100`
+    :param max_added_nodes: integer, maximum nodes(pages) that are allowed to be fetched
+                            per iteration, default is `50`
+    :param keywords: tuple of keywords that are used to filter the result
+    :param fake: boolean value, in case of `True` don't fetch any page, 
+                 try to generate fake data
+    :param debug: logging or not
+    :param writer: a function that is used to write the result into disk/DB/file
+                   with param is node or nodes
     """
     DEBUG = debug
     history = 0
