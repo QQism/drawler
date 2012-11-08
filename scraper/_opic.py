@@ -236,7 +236,7 @@ def keywords_occurances(node, keywords_re):
 
 def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
           max_nodes=100, max_added_nodes=50, keywords=(u'trung quốc',),
-          writer=None, fake=False, debug=True):
+          session=None, writer=None, fake=False, debug=True):
     """Crawl pages, and insert new pages into a frontier set. Dont crawl it
     immediately, wait for the next time
 
@@ -262,7 +262,7 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
     :param max_added_nodes: integer, maximum nodes(pages) that are allowed to be fetched
                             per iteration, default is `50`
     :param keywords: tuple of keywords that are used to filter the result
-    :param fake: boolean value, in case of `True` don't fetch any page, 
+    :param fake: boolean value, in case of `True` don't fetch any page,
                  try to generate fake data
     :param debug: logging or not
     :param writer: a function that is used to write the result into disk/DB/file

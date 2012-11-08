@@ -2,7 +2,13 @@ import happybase
 
 HBASE_SETTINGS = {'host': '127.0.0.1', 'port': '9090'}
 
-def initialize_hbase_connection(host='127.0.0.1', port='9090'):
+def initialize_hbase_connection(host=None, port=None):
+    if host is None:
+        host = HBASE_SETTINGS['host']
+
+    if port is None:
+        port = HBASE_SETTINGS['port']
+
     connection = None
     try:
         connection = happybase.Connection(host, port)

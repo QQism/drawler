@@ -25,7 +25,8 @@ class ScraperProfile(models.Model):
         return self.name + ': ' + self.url + ', ' + self.keywords_text
 
 class ScraperSession(models.Model):
-    
+
+    profile = models.ForeignKey('ScraperProfile')
     description = models.TextField()
     max_nodes = models.IntegerField()
     max_added_nodes = models.IntegerField()
@@ -49,6 +50,7 @@ class ScraperSession(models.Model):
                         b.put(node['url'],
                           {'text:raw': node['raw_content'].encode('utf-8'),
                            'text:content': node['content'].encode('utf-8'),
+                           'text:keywords_count': node['keywords_count'],
                            'history:opic': node['importance'],
                            'history:g': node['history'],
                           }, timestamp=self.created_at)
