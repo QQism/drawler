@@ -1,5 +1,6 @@
 from django.db import models
 from db import get_table
+import pprint
 
 class ScraperProfile(models.Model):
     name = models.CharField('Name', max_length=255, null=False, blank=False)
@@ -36,6 +37,9 @@ class ScraperSession(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def write_log(self, *args, **kwargs):
+        print
+
     def save_node(self, data):
         success = False
         if isinstance(data, dict):
@@ -44,18 +48,21 @@ class ScraperSession(models.Model):
         elif hasattr(data, '__iter__'):
             # list of nodes
             nodes = data
-            with self.storage.batch(batch_size=1000) as b:
+            #pprint.PrettyPrinter(indent=4).pprint(nodes)
+            with self.storage.batch(timestamp=int(self.created_at.strftime('%s')),
+                                    batch_size=1000) as b:
                 for node in nodes:
                     try:
-                        b.put(node['url'],
-                          {'text:raw': node['raw_content'].encode('utf-8'),
-                           'text:content': node['content'].encode('utf-8'),
-                           'text:keywords_count': node['keywords_count'],
-                           'history:opic': node['importance'],
-                           'history:g': node['history'],
-                          }, timestamp=self.created_at)
+                        b.put(node['name'].encode('utf-8'),
+                          {'text:raw': node['raw_content'],
+                           'text:content': u' '.join(node['content']),
+                           'text:keywords_count': str(node['keywords_count']),
+                           'history:opic': str(node['importance']),
+                           'history:g': str(node['history']),
+                          })
                     except Exception as e:
-                        print node
+                        #print node
+                        print node['name']
                         print e
         else:
             success = False

@@ -19,6 +19,7 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/django_rq/', include('django_rq.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^lexis/', include('lexis.urls', namespace="lexis"), name="lexis_urls"),
     url(r'^scraper/', include('scraper.urls', namespace="scraper"), name="scraper_urls"),

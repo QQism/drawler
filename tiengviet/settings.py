@@ -120,6 +120,7 @@ INSTALLED_APPS = (
     'treebeard',
     'lexis',
     'scraper',
+    'django_rq',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -156,3 +157,12 @@ TEMPLATE_CONTEXT_PROCESSORS = TCP + (
     'django.core.context_processors.request',
     'django.core.context_processors.static',
 )
+
+RQ_QUEUES = {
+    'default': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+        'PASSWORD': ''
+    }
+}

@@ -2,8 +2,9 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from models import ScraperProfile, ScraperSession
 from forms import ScrapingForm
-#import _opic
+import _opic
 import logging
+from django_rq import job, enqueue, get_connection
 
 logger = logging.getLogger(__name__)
 
@@ -31,21 +32,26 @@ def profile(request, scraper_profile_id):
                                'form': form},
                               context_instance=RequestContext(request))
 
-def scrape(request, scraper_profile_id):
+def session(request, scraper_profile_id):
     """
     """
+    profile = ScraperProfile.objects.get(pk=scraper_profile_id)
+    form = ScrapingForm()
     logger.info(request)
     if request.method == 'POST':
+        print(request.POST)
         form = ScrapingForm(request.POST)
         print(form.is_valid())
         print(form)
+        print(type(form))
         if form.is_valid():
-            profile = ScraperProfile.objects.get(pk=scraper_profile_id)
             new_session = ScraperSession(profile=profile,
-                                         max_nodes=form.max_pages,
-                                         max_added_nodes=form.page_increment,
-                                         timeout=form.timeout)
+                                         max_nodes=int(form.data['max_pages']),
+                                         max_added_nodes=int(form.data['pages_increment']),
+                                         timeout=int(form.data['timeout']))
             new_session.save()
+            #enqueue(scrape, session_id=new_session.pk)
+            scrape.delay(new_session.id)
             #_opic.start()
     return render_to_response('scraper/profile.html',
                               {'profile': profile,
@@ -57,3 +63,15 @@ def update(request, scraper_profile_id):
     HTTP polling
     """
     return
+
+@job('default', connection=get_connection('default'), timeout=60000)
+def scrape(session_id):
+    session = ScraperSession.objects.get(pk=session_id)
+    profile = session.profile
+    _opic.start(domain=profile.url,
+                template=profile.template,
+                max_nodes=session.max_nodes,
+                max_added_nodes=session.max_added_nodes,
+                keywords=profile.keywords,
+                writer=session.save_node)
+

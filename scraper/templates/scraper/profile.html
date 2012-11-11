@@ -7,7 +7,7 @@
     <div class="span12 hero-unit">
         {% if profile %}
         <h2><a href="{{ profile.url }}">{{ profile.name }}</a></h2>
-        <form action='{% url scraper:scrape profile.pk %}' method='POST'>
+        <form action='{% url scraper:session profile.pk %}' method='POST'>
             {% csrf_token %}
             {{ form.as_p }}
             <input type='submit' value='Scrape'/>

@@ -225,17 +225,19 @@ def build_keywords_re(keywords):
 
 def keywords_occurances(node, keywords_re):
     try:
-        node['keywords_count'] = len(keywords_re.findall(node.setdefault('content', '')))
+        content = node.setdefault('content', ())
+        node['keywords_count'] = sum([len(keywords_re.findall(i)
+                                          for i in content)])
     except Exception as ex:
         log(ex)
         log(node['name'])
-        log(node.setdefault('content', ''))
+        log(node.setdefault('content', ()))
         node['keywords_count'] = 0
 
     return node['keywords_count']
 
-def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
-          max_nodes=100, max_added_nodes=50, keywords=(u'trung quốc',),
+def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
+          max_nodes=10, max_added_nodes=2, keywords=(u'trung quốc',),
           session=None, writer=None, fake=False, debug=True):
     """Crawl pages, and insert new pages into a frontier set. Dont crawl it
     immediately, wait for the next time
@@ -255,7 +257,7 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
     Set an interval for all pages to be re-fetched
     Dont fetch pages that
 
-    :param name: name and also the domain of the site need to be scraped
+    :param domain: domain of the site need to be scraped
     :param template: template is used to extract the content of a page in part
     :param max_nodes: integer, maximum nodes(pages) that are allowed to be
                       fetched, default is `100`
@@ -272,14 +274,15 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
     history = 0
 
     crawler = Crawler()
-    if name:
-        if name.count('http://') or name.count('https://'):
-            start_name = name
+    if domain:
+        if domain.count('http://') or domain.count('https://'):
+            full_url = domain
+            domain = re.sub('^(http|https)://','', domain)
         else:
-            start_name = 'http://' + name
-        graph = [{'name': start_name}]
+            full_url = 'http://' + domain
+        graph = [{'name': full_url}]
         children_url_re = re.compile(
-            r'^((http|https)://.*' + name + '|(?!(http://|https://|javascript:)))')
+            r'^((http|https)://.*' + domain + '|(?!(http://|https://|javascript:)))')
 
     else:
         children_url_re = None
@@ -316,7 +319,11 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
                                        children_url_re)
 
             if node.has_key('raw_content') and not node.has_key('content'):
-                node['content'] = template_processor.extract(node['raw_content'])
+                content = template_processor.extract(node['raw_content'])
+                if isinstance(content, str):
+                    # content should be in tuple
+                    content = (content, )
+                node['content'] = content
 
         log('History :' + str(history))
         total_importance = sum([compute_importance(node, history) for node in graph])
@@ -351,9 +358,15 @@ def start(name='tuoitre.vn', template='<div id="divContent"><getme/></div>',
 
     log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
     [log(x['name'], x['importance']) for x in graph]
+
+    if writer is not None:
+        log('Start insert into DB')
+        writer(graph)
+        log('Successfully')
+
     for x in graph:
         if x.has_key('content') and x['content'] and x['keywords_count'] > 0:
-            log(x['content'])
+#            log(x['content'])
             log(x['keywords_count'])
     return total_occurances
     #return graph
