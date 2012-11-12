@@ -40,6 +40,11 @@ class ScraperSession(models.Model):
     def write_log(self, *args, **kwargs):
         print
 
+    @models.permalink
+    def get_absolute_url(self):
+        return ('session', (), {'profile_id': self.profile.id,
+                                              'session_id': self.id})
+
     def save_node(self, data):
         success = False
         if isinstance(data, dict):
@@ -54,7 +59,7 @@ class ScraperSession(models.Model):
                 for node in nodes:
                     try:
                         b.put(node['name'].encode('utf-8'),
-                          {'text:raw': node['raw_content'],
+                          {'text:raw': node['raw_content'].encode('utf-8'),
                            'text:content': u' '.join(node['content']),
                            'text:keywords_count': str(node['keywords_count']),
                            'history:opic': str(node['importance']),
@@ -62,8 +67,10 @@ class ScraperSession(models.Model):
                           })
                     except Exception as e:
                         #print node
+                        print 'error'
                         print node['name']
                         print e
+                        print 'end'
         else:
             success = False
 

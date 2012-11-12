@@ -116,7 +116,7 @@ def visit_link(node, crawler=None, children_url_re=None):
         try:
             response = crawler.goto(node['name'])
             soup = Soup(response)
-            node['raw_content'] = response
+            node['raw_content'] = soup.text
 
             # internal pages
             node['children'] = [build_full_url(a_tag.get('href'),
@@ -226,8 +226,8 @@ def build_keywords_re(keywords):
 def keywords_occurances(node, keywords_re):
     try:
         content = node.setdefault('content', ())
-        node['keywords_count'] = sum([len(keywords_re.findall(i)
-                                          for i in content)])
+        node['keywords_count'] = sum([len(keywords_re.findall(i))
+                                          for i in content])
     except Exception as ex:
         log(ex)
         log(node['name'])

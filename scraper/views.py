@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from models import ScraperProfile, ScraperSession
 from forms import ScrapingForm
@@ -17,7 +17,7 @@ def home(request):
                               {'profiles': profiles},
                               context_instance=RequestContext(request))
 
-def profile(request, scraper_profile_id):
+def profile(request, profile_id):
     """
     Select the profile
     Choose sites to crawl
@@ -25,17 +25,17 @@ def profile(request, scraper_profile_id):
 
     """
     logger.info(request)
-    profile = ScraperProfile.objects.get(pk=scraper_profile_id)
+    profile = ScraperProfile.objects.get(pk=profile_id)
     form = ScrapingForm()
     return render_to_response('scraper/profile.html',
                               {'profile': profile,
                                'form': form},
                               context_instance=RequestContext(request))
 
-def session(request, scraper_profile_id):
+def sessions(request, profile_id):
     """
     """
-    profile = ScraperProfile.objects.get(pk=scraper_profile_id)
+    profile = ScraperProfile.objects.get(pk=profile_id)
     form = ScrapingForm()
     logger.info(request)
     if request.method == 'POST':
@@ -51,12 +51,24 @@ def session(request, scraper_profile_id):
                                          timeout=int(form.data['timeout']))
             new_session.save()
             #enqueue(scrape, session_id=new_session.pk)
-            scrape.delay(new_session.id)
+            #scrape.delay(new_session.id)
             #_opic.start()
-    return render_to_response('scraper/profile.html',
+            return redirect(new_session)
+        else:
+            return render_to_response('scraper/profile.html',
+                                      {'profile': profile,
+                                       'form': form},
+                                      context_instance=RequestContext(request))
+
+def session(request, profile_id, session_id):
+    session = ScraperSession.objects.get(pk=session_id)
+    profile = session.profile
+    nodes = [i for i in session.storage.scan(timestamp=session.created_at)]
+    return render_to_response('scraper/session.html',
                               {'profile': profile,
-                               'form': form},
+                               'session': session, 'nodes': nodes},
                               context_instance=RequestContext(request))
+
 
 def update(request, scraper_profile_id):
     """
