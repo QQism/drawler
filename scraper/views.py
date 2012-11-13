@@ -51,9 +51,10 @@ def sessions(request, profile_id):
                                          timeout=int(form.data['timeout']))
             new_session.save()
             #enqueue(scrape, session_id=new_session.pk)
-            #scrape.delay(new_session.id)
+            scrape.delay(new_session.id)
             #_opic.start()
-            return redirect(new_session)
+            return redirect('scraper:session', profile_id=profile.id,
+                            session_id=new_session.id)
         else:
             return render_to_response('scraper/profile.html',
                                       {'profile': profile,
@@ -63,7 +64,7 @@ def sessions(request, profile_id):
 def session(request, profile_id, session_id):
     session = ScraperSession.objects.get(pk=session_id)
     profile = session.profile
-    nodes = [i for i in session.storage.scan(timestamp=session.created_at)]
+    nodes = [i for i in session.storage.scan(timestamp=int(session.created_at.strftime('%s')))]
     return render_to_response('scraper/session.html',
                               {'profile': profile,
                                'session': session, 'nodes': nodes},
@@ -80,10 +81,14 @@ def update(request, scraper_profile_id):
 def scrape(session_id):
     session = ScraperSession.objects.get(pk=session_id)
     profile = session.profile
+    session.status = 'P'
+    session.save()
     _opic.start(domain=profile.url,
                 template=profile.template,
                 max_nodes=session.max_nodes,
                 max_added_nodes=session.max_added_nodes,
                 keywords=profile.keywords,
                 writer=session.save_node)
+    session.status = 'C'
+    session.save()
 

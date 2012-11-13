@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block css %}
+{% endblock %}
+{% load i18n %}
+{% block content %}
+<div class="row-fluid">
+    {% if nodes %}
+    {% for node in nodes %}
+    <ul>
+        <li>{{ node }}</li>
+    </ul>
+    {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}
+{% block javascript %}
+<script>
+(function () {
+    function update_pages(){
+    //console.log('ookkk');
+    }
+
+    function refresh_table(){
+
+    }
+
+    setInterval(update_pages, 2000)
+}).call(this);
+</script>
+{% endblock %}

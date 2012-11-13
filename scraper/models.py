@@ -25,6 +25,12 @@ class ScraperProfile(models.Model):
     def __unicode__(self):
         return self.name + ': ' + self.url + ', ' + self.keywords_text
 
+STATUS_CHOICES = (
+    ('C', 'Completed'),
+    ('W', 'Waiting'),
+    ('P', 'Processing')
+)
+
 class ScraperSession(models.Model):
 
     profile = models.ForeignKey('ScraperProfile')
@@ -34,6 +40,9 @@ class ScraperSession(models.Model):
     timeout = models.IntegerField()
     storage = get_table('websites')
 
+    # calling self.get_status_display()
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='W')
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -42,8 +51,8 @@ class ScraperSession(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('session', (), {'profile_id': self.profile.id,
-                                              'session_id': self.id})
+        return ('scraper.views.session', (), {'profile_id': str(self.profile.id),
+                                              'session_id': str(self.id)})
 
     def save_node(self, data):
         success = False
