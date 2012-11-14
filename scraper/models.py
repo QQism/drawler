@@ -58,7 +58,15 @@ class ScraperSession(models.Model):
         success = False
         if isinstance(data, dict):
             # this is the single node, in dictionary type
-            pass
+            node = data
+            self.storage.put(
+                node['name'].encode('utf-8'),
+                {'text:raw': node['raw_content'].encode('utf-8'),
+                 'text:content': u' '.join(node['content']),
+                 'text:keywords_count': str(node['keywords_count']),
+                 'history:opic': str(node['importance']),
+                 'history:g': str(node['history']),
+                }, timestamp=int(self.created_at.strftime('%s')))
         elif hasattr(data, '__iter__'):
             # list of nodes
             nodes = data

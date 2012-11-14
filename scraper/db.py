@@ -18,10 +18,10 @@ def initialize_hbase_connection(host=None, port=None):
 
 def create_hbase_table(connection, table_name):
     assert hasattr(connection, 'create_table')
-    connection.create_table(table_name, {'text': {'max_versions': -1,
+    connection.create_table(table_name, {'text': {'max_versions': 1000000000,
                                                   'compression': 'GZ'},
-                                         'history': {'max_versions': -1},
-                                         'options': {}
+                                         'history': {'max_versions': 1000000000},
+                                         'options': {'max_versions': 1000000000}
                                         })
 
 def get_table(table_name):
