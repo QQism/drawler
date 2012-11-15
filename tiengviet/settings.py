@@ -121,7 +121,7 @@ INSTALLED_APPS = (
     'lexis',
     'scraper',
     'django_rq',
-    'django_bootstrap_breadcrumbs',
+#    'django_bootstrap_breadcrumbs',
 )
 
 # A sample logging configuration. The only tangible logging
