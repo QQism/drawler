@@ -4,20 +4,22 @@
 {% load i18n %}
 {% block content %}
 <div class="row-fluid">
-    {% if nodes %}
-    {% for node in nodes %}
-    <ul>
-        <li>{{ node }}</li>
-    </ul>
-    {% endfor %}
-    {% endif %}
+    <div class="span12 hero-unit">
+        {% if nodes %}
+        {% for node in nodes %}
+        <ul>
+            <li>{{ node.0 }}, {{ node.1 }}</li>
+        </ul>
+        {% endfor %}
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
 {% block javascript %}
 <script>
 (function () {
     function update_pages(){
-    //console.log('ookkk');
+        //console.log('ookkk');
     }
 
     function refresh_table(){
