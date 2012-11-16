@@ -27,9 +27,13 @@ def profile(request, profile_id):
     logger.info(request)
     profile = ScraperProfile.objects.get(pk=profile_id)
     form = ScrapingForm()
+    sessions = ScraperSession.objects.get(profile=profile)
     return render_to_response('scraper/profile.html',
-                              {'profile': profile,
-                               'form': form},
+                              {
+                                  'profile': profile,
+                                  'form': form,
+                                  'sessions': sessions
+                              },
                               context_instance=RequestContext(request))
 
 def sessions(request, profile_id):
@@ -78,6 +82,10 @@ def update(request, scraper_profile_id):
     HTTP polling
     """
     return
+
+def total_sessions(request):
+    pass
+
 
 @job('default', connection=get_connection('default'), timeout=60000)
 def scrape(session_id):

@@ -1,19 +1,20 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load django_bootstrap_breadcrumbs %}
 {% block css %}
 {% endblock %}
 
-{% block breadcrumbs %}
-    {{ block.super }}
-    {% breadcrumb "Home" "/" %}
-{% endblock %}
-
-{% load i18n %}
 {% block content %}
 <div class="row-fluid">
     <div class="span12 hero-unit">
+
+        {% block breadcrumbs %}
+        {% breadcrumb "Home" "/" %}
+        {% breadcrumb "Profile" "scraper:home"  %}
+        {% breadcrumb profile.name|escape "" %}
+        {% endblock %}
+
         {% if profile %}
-        {% breadcrumb "XProfile" "scraper.views.profile" profile.pk %}
         {% render_breadcrumbs %}
         <h2><a href="{{ profile.url }}">{{ profile.name }}</a></h2>
         <form action='{% url scraper:sessions profile.pk %}' method='POST'>

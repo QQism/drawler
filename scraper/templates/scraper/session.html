@@ -2,9 +2,18 @@
 {% block css %}
 {% endblock %}
 {% load i18n %}
+{% load django_bootstrap_breadcrumbs %}
 {% block content %}
 <div class="row-fluid">
     <div class="span12 hero-unit">
+        {% block breadcrumbs %}
+        {% breadcrumb "Home" "/" %}
+        {% breadcrumb "Profile" "scraper:home" %}
+        {% breadcrumb profile.name|escape "scraper:site_profile" profile.pk %}
+        {% breadcrumb session.pk|escape "scraper:session" profile.pk session.pk %}
+        {% endblock %}
+        {% render_breadcrumbs %}
+
         {% if nodes %}
         {% for node in nodes %}
         <ul>
