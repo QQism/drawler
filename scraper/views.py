@@ -27,7 +27,7 @@ def profile(request, profile_id):
     logger.info(request)
     profile = ScraperProfile.objects.get(pk=profile_id)
     form = ScrapingForm()
-    sessions = ScraperSession.objects.get(profile=profile)
+    sessions = ScraperSession.objects.filter(profile=profile)
     return render_to_response('scraper/profile.html',
                               {
                                   'profile': profile,
@@ -43,11 +43,7 @@ def sessions(request, profile_id):
     form = ScrapingForm()
     logger.info(request)
     if request.method == 'POST':
-        print(request.POST)
         form = ScrapingForm(request.POST)
-        print(form.is_valid())
-        print(form)
-        print(type(form))
         if form.is_valid():
             new_session = ScraperSession(profile=profile,
                                          max_nodes=int(form.data['max_pages']),

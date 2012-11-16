@@ -14,6 +14,11 @@
         {% breadcrumb profile.name|escape "" %}
         {% endblock %}
 
+        <ul>
+            {% for session in sessions %}
+            <li>{{ session }}</li>
+            {% endfor %}
+        </ul>
         {% if profile %}
         {% render_breadcrumbs %}
         <h2><a href="{{ profile.url }}">{{ profile.name }}</a></h2>

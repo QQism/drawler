@@ -31,7 +31,6 @@ def breadcrumb(context, label, viewname, *args):
     :param viewname: Name of the view to link this breadcrumb to.
     :param args: Any arguments to view function.
     """
-    print label, viewname
     context['request'].META[CONTEXT_KEY] = context['request'].META.get(
         CONTEXT_KEY, []) + [(label, viewname, args)]
     return ''
@@ -45,15 +44,11 @@ def render_breadcrumbs(context):
     for (label, viewname, args) in context['request'].META.get(
         CONTEXT_KEY, []):
         try:
-            print viewname
-            print args
             url = reverse(viewname=viewname, args=args)
-            print url
         except NoReverseMatch as ex:
-            print ex
             url = viewname
         links.append((url, _(label) if label else label))
-        print links
+
     if not links:
         return ''
 
@@ -71,7 +66,6 @@ def render_breadcrumbs(context):
 
     ret += '</ul>'
 
-    print ret
     return mark_safe(ret)
 
 
