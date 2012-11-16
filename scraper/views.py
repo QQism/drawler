@@ -27,7 +27,7 @@ def profile(request, profile_id):
     logger.info(request)
     profile = ScraperProfile.objects.get(pk=profile_id)
     form = ScrapingForm()
-    sessions = ScraperSession.objects.filter(profile=profile)
+    sessions = ScraperSession.objects.filter(profile=profile).order_by('-created_at')
     return render_to_response('scraper/profile.html',
                               {
                                   'profile': profile,
@@ -64,14 +64,28 @@ def sessions(request, profile_id):
 def session(request, profile_id, session_id):
     session = ScraperSession.objects.get(pk=session_id)
     profile = session.profile
+    sessions = ScraperSession.objects.filter(profile=profile).order_by('-created_at')
     nodes = [i for i in session.storage.scan(
         columns = ['history:opic', 'text:keywords_count'],
-        timestamp=int(session.created_at.strftime('%s'))+1)]
-    return render_to_response('scraper/session.html',
-                              {'profile': profile,
-                               'session': session, 'nodes': nodes},
+        timestamp=int(session.created_at.strftime('%s'))+1,
+        limit=session.max_nodes)]
+    return render_to_response('scraper/profile.html',
+                              {'profile': profile, 'sessions': sessions,
+                               'current_session': session, 'nodes': nodes},
                               context_instance=RequestContext(request))
 
+
+def new_session(request, profile_id):
+    profile = ScraperProfile.objects.get(pk=profile_id)
+    form = ScrapingForm()
+    sessions = ScraperSession.objects.filter(profile=profile).order_by('-created_at')
+    return render_to_response('scraper/profile.html',
+                              {
+                                  'profile': profile,
+                                  'form': form,
+                                  'sessions': sessions
+                              },
+                              context_instance=RequestContext(request))
 
 def update(request, scraper_profile_id):
     """

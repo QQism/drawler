@@ -6,42 +6,74 @@
 
 {% block content %}
 <div class="row-fluid">
-    <div class="span12 hero-unit">
-
+    <div class="span12 wrapper">
+        {% if profile %}
         {% block breadcrumbs %}
         {% breadcrumb "Home" "/" %}
         {% breadcrumb "Profile" "scraper:home"  %}
         {% breadcrumb profile.name|escape "" %}
         {% endblock %}
 
-        <ul>
+        {% render_breadcrumbs %}
+        <div class="well">
+            {{ profile.name }} || {{ profile.url }} || 
+
+            {% for word in profile.keywords %}
+            {{ word }}
+            {% endfor %}
+        </div>
+    <div class="span2 side-column well">
+        <ul class="nav nav-pills nav-stacked">
             {% for session in sessions %}
-            <li>{{ session }}</li>
+            {% if session.pk == current_session.pk %}
+            <li class="active">
+            {% else %}
+            <li>
+            {% endif %}
+                <a href="{% url scraper:session profile.pk session.pk  %}">{{ session.created_at }}
+                    {% if session.status == 'C' %}
+                    <span class="label label-success">{{ session.get_status_display }}</span>
+                    {% elif session.status == 'W' %}
+                    <span class="label label">{{ session.get_status_display }}</span>
+                    {% elif session.status == 'P' %}
+                    <span class="label label-info">{{ session.get_status_display }}</span>
+                    {% elif session.status == 'F' %}
+                    <span class="label label-important">{{ session.get_status_display }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            {% empty %}
+            <b>Don't have any session yet!</b>
             {% endfor %}
         </ul>
-        {% if profile %}
-        {% render_breadcrumbs %}
-        <h2><a href="{{ profile.url }}">{{ profile.name }}</a></h2>
+    </div>
+    <div class="span9">
+        {% if form %}
+        <h3>New Session</h3>
         <form action='{% url scraper:sessions profile.pk %}' method='POST'>
             {% csrf_token %}
             {{ form.as_p }}
             <input type='submit' value='Scrape'/>
         </form>
         {% endif %}
+        <div class='row-fluid'>
+            <table class='table table-bordered' id='scraping-pages-tables'>
+                <thead>
+                    <tr>
+                        <th>Link</th>
+                        <th>Cash</th>
+                        <th>Importance</th>
+                        <th>Content</th>
+                    </tr>
+                </thead>
+                <tbody id='scraping-pages'>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div class='row-fluid'>
-        <table class='table table-bordered' id='scraping-pages-tables'>
-            <thead>
-                <tr>
-                    <th>Link</th>
-                    <th>Cash</th>
-                    <th>Importance</th>
-                    <th>Content</th>
-                </tr>
-            </thead>
-            <tbody id='scraping-pages'>
-            </tbody>
-        </table>
+    {% else %}
+    <h3>Cannot find profile</h3>
+    {% endif %}
     </div>
 </div>
 {% endblock %}

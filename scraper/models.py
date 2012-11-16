@@ -28,7 +28,8 @@ class ScraperProfile(models.Model):
 STATUS_CHOICES = (
     ('C', 'Completed'),
     ('W', 'Waiting'),
-    ('P', 'Processing')
+    ('P', 'Processing'),
+    ('F', 'Failed')
 )
 
 class ScraperSession(models.Model):

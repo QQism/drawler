@@ -1,0 +1,11 @@
+.wrapper {
+    position: relative;
+    min-height: 100%;
+    padding: 54px 14px 15px;
+    margin: 0 auto;
+}
+
+.side-column {
+    float: left;
+    background: #DDD;
+}
