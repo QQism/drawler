@@ -57,17 +57,26 @@ class ScraperSession(models.Model):
 
     def save_node(self, data):
         success = False
+
+        def pack_node(node):
+            if hasattr(node['content'], 'encode'):
+                content = node['content'].encode('utf-8')
+            else:
+                content = (u' '.join(node['content'])).encode('utf-8')
+
+            return {'text:raw': node['raw_content'].encode('utf-8'),
+                    'text:content': content,
+                    'text:keywords_count': str(node['keywords_count']),
+                    'history:opic': str(node['importance']),
+                    'history:g': str(node['history'])}
+
         if isinstance(data, dict):
             # this is the single node, in dictionary type
             node = data
             self.storage.put(
                 node['name'].encode('utf-8'),
-                {'text:raw': node['raw_content'].encode('utf-8'),
-                 'text:content': u' '.join(node['content']),
-                 'text:keywords_count': str(node['keywords_count']),
-                 'history:opic': str(node['importance']),
-                 'history:g': str(node['history']),
-                }, timestamp=int(self.created_at.strftime('%s')))
+                pack_node(node),
+                timestamp=int(self.created_at.strftime('%s')))
         elif hasattr(data, '__iter__'):
             # list of nodes
             nodes = data
@@ -76,13 +85,7 @@ class ScraperSession(models.Model):
                                     batch_size=1000) as b:
                 for node in nodes:
                     try:
-                        b.put(node['name'].encode('utf-8'),
-                          {'text:raw': node['raw_content'].encode('utf-8'),
-                           'text:content': u' '.join(node['content']),
-                           'text:keywords_count': str(node['keywords_count']),
-                           'history:opic': str(node['importance']),
-                           'history:g': str(node['history']),
-                          })
+                        b.put(node['name'].encode('utf-8'), pack_node(node))
                     except Exception as e:
                         #print node
                         print 'error'

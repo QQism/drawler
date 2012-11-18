@@ -24,6 +24,7 @@
         </div>
     <div class="span2 side-column well">
         <ul class="nav nav-pills nav-stacked">
+            <li><a href="{% url scraper:new_session profile.pk %}"><span>Create a new one</span></a></li>
             {% for session in sessions %}
             {% if session.pk == current_session.pk %}
             <li class="active">
@@ -44,6 +45,7 @@
             </li>
             {% empty %}
             <b>Don't have any session yet!</b>
+            <a><span>Create a new one</span></a>
             {% endfor %}
         </ul>
     </div>
@@ -56,20 +58,32 @@
             <input type='submit' value='Scrape'/>
         </form>
         {% endif %}
-        <div class='row-fluid'>
-            <table class='table table-bordered' id='scraping-pages-tables'>
-                <thead>
-                    <tr>
-                        <th>Link</th>
-                        <th>Cash</th>
-                        <th>Importance</th>
-                        <th>Content</th>
-                    </tr>
-                </thead>
-                <tbody id='scraping-pages'>
-                </tbody>
-            </table>
+
+        {% if nodes %}
+        <h2>Results</h2>
+        <div class="accordion" id="accordion2">
+            {% for node in nodes %}
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapse{{ forloop.counter }}">
+                        {{ node.0 }} || {{ node.1 }} || {{ node.2 }}
+                    </a>
+                </div>
+                <div id="collapse{{ forloop.counter }}" class="accordion-body collapse in">
+                    <div class="accordion-inner">
+                        {% if node.3 %}
+                        <pre>
+                        {{ node.3 }}
+                        </pre>
+                        {% else %}
+                        <span>No appropriated content</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
+        {% endif %}
     </div>
     {% else %}
     <h3>Cannot find profile</h3>
@@ -86,6 +100,10 @@
 
     function refresh_table(){
 
+    }
+
+    function mark_keywords(){
+    
     }
 
     setInterval(update_pages, 2000)

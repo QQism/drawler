@@ -66,9 +66,13 @@ def session(request, profile_id, session_id):
     profile = session.profile
     sessions = ScraperSession.objects.filter(profile=profile).order_by('-created_at')
     nodes = [i for i in session.storage.scan(
-        columns = ['history:opic', 'text:keywords_count'],
+        columns = ['history:opic', 'text:keywords_count' ,'text:content'],
         timestamp=int(session.created_at.strftime('%s'))+1,
         limit=session.max_nodes)]
+
+    nodes = sorted([(node[0], node[1]['history:opic'], node[1]['text:keywords_count'],
+              node[1]['text:content'])
+                    for node in nodes], key=lambda node: float(node[1]), reverse=True)
     return render_to_response('scraper/profile.html',
                               {'profile': profile, 'sessions': sessions,
                                'current_session': session, 'nodes': nodes},

@@ -115,6 +115,7 @@ def visit_link(node, crawler=None, children_url_re=None):
         node['url'] = urlparse(node['name'])
         try:
             response = crawler.goto(node['name'])
+            node['original_raw_content'] = response
             soup = Soup(response)
             node['raw_content'] = soup.text
 
@@ -318,12 +319,16 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
                                        crawler,
                                        children_url_re)
 
-            if node.has_key('raw_content') and not node.has_key('content'):
-                content = template_processor.extract(node['raw_content'])
+            if node.has_key('original_raw_content') and not node.has_key('content'):
+                log('SSSSSSSSS')
+                log(node['name'])
+                content = template_processor.extract(node['original_raw_content'])
                 if isinstance(content, str):
                     # content should be in tuple
                     content = (content, )
                 node['content'] = content
+                log(content)
+                log('ssssssssssss')
 
         log('History :' + str(history))
         total_importance = sum([compute_importance(node, history) for node in graph])
