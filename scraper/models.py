@@ -64,7 +64,7 @@ class ScraperSession(models.Model):
             else:
                 content = (u' '.join(node['content'])).encode('utf-8')
 
-            return {'text:raw': node['raw_content'].encode('utf-8'),
+            return {'text:raw': node['raw_content'],
                     'text:content': content,
                     'text:keywords_count': str(node['keywords_count']),
                     'history:opic': str(node['importance']),
@@ -96,3 +96,7 @@ class ScraperSession(models.Model):
             success = False
 
         return success
+
+    def get_node(self, node_name, columns=()):
+        return self.storage.row(node_name, columns,
+                                timestamp=int(self.created_at.strftime('%s')))

@@ -72,9 +72,9 @@
                 <div id="collapse{{ forloop.counter }}" class="accordion-body collapse in">
                     <div class="accordion-inner">
                         {% if node.3 %}
-                        <pre>
+                        <p class="scraping-content">
                         {{ node.3 }}
-                        </pre>
+                        </p>
                         {% else %}
                         <span>No appropriated content</span>
                         {% endif %}
@@ -102,10 +102,19 @@
 
     }
 
-    function mark_keywords(){
-    
+    function mark_keywords(keywords){
+        $(".scraping-content").each(function(index, element) {
+            console.log(element);
+            keywords.forEach(function(value){
+                element.innerHTML = element.innerHTML.replace(value, '<strong>' + value + '</strong>');
+            })
+        })
     }
-
+    keywords = [];
+    {% for keyword in profile.keywords %}
+        keywords.push('{{ keyword }}');
+    {% endfor %}
+    mark_keywords(keywords);
     setInterval(update_pages, 2000)
 }).call(this);
 </script>

@@ -107,17 +107,27 @@ def build_full_url(url_string, current_url):
     #log('xxxxxxx')
     return full_url
 
-def visit_link(node, crawler=None, children_url_re=None):
+def visit_link(node, crawler=None, children_url_re=None, cache=None):
     """In practice, this is the fetching function
     Need to be Cached
     """
     if crawler is not None:
         node['url'] = urlparse(node['name'])
         try:
-            response = crawler.goto(node['name'])
-            node['original_raw_content'] = response
+            response = None
+            if cache:
+                result = cache(node['name'], ['text:raw'])
+                log(result)
+                #input()
+                if result:
+                    response = result['text:raw']
+                    log(node['name'], 'CACHE')
+
+            if not response:
+                response = crawler.goto(node['name'])
+
             soup = Soup(response)
-            node['raw_content'] = soup.text
+            node['raw_content'] = response
 
             # internal pages
             node['children'] = [build_full_url(a_tag.get('href'),
@@ -153,7 +163,7 @@ def update_node_cash(node, cash):
     node['cash'] += cash
     #return node
 
-def distribute_cash(graph, frontiers, node, crawler, children_url_re):
+def distribute_cash(graph, frontiers, node, crawler, children_url_re, cache):
     """Distribute cash to children links
     """
     log('===========')
@@ -166,7 +176,7 @@ def distribute_cash(graph, frontiers, node, crawler, children_url_re):
             child_cash = node['cash'] / l
             [update_node_cash(child, child_cash) for child in node['cache']]
     else:
-        children = visit_link(node, crawler, children_url_re)
+        children = visit_link(node, crawler, children_url_re, cache=cache)
         l = len(children)
         if l > 0:
             child_cash = node['cash'] / l
@@ -239,7 +249,7 @@ def keywords_occurances(node, keywords_re):
 
 def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
           max_nodes=10, max_added_nodes=2, keywords=(u'trung quốc',),
-          session=None, writer=None, fake=False, debug=True):
+          session=None, writer=None, fake=False, cache=True, debug=True):
     """Crawl pages, and insert new pages into a frontier set. Dont crawl it
     immediately, wait for the next time
 
@@ -317,14 +327,14 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
 
             history += distribute_cash(graph, frontiers, node,
                                        crawler,
-                                       children_url_re)
+                                       children_url_re, cache)
 
-            if node.has_key('original_raw_content') and not node.has_key('content'):
+            if node.has_key('raw_content') and not node.has_key('content'):
                 log('SSSSSSSSS')
                 log(node['name'])
-                content = template_processor.extract(node['original_raw_content'])
-                if isinstance(content, str):
-                    # content should be in tuple
+                content = template_processor.extract(node['raw_content'])
+                if hasattr(content, 'encode'):
+                    # content should be in tuple, not str or unicode
                     content = (content, )
                 node['content'] = content
                 log(content)

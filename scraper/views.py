@@ -112,7 +112,8 @@ def scrape(session_id):
                 max_nodes=session.max_nodes,
                 max_added_nodes=session.max_added_nodes,
                 keywords=profile.keywords,
-                writer=session.save_node)
+                writer=session.save_node,
+                cache=session.get_node)
     session.status = 'C'
     session.save()
 
