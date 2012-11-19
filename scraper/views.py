@@ -107,13 +107,16 @@ def scrape(session_id):
     profile = session.profile
     session.status = 'P'
     session.save()
-    _opic.start(domain=profile.url,
+    result = _opic.start(domain=profile.url,
                 template=profile.template,
                 max_nodes=session.max_nodes,
                 max_added_nodes=session.max_added_nodes,
                 keywords=profile.keywords,
                 writer=session.save_node,
                 cache=session.get_node)
-    session.status = 'C'
+    if result:
+        session.status = 'C'
+    else:
+        session.status = 'F'
     session.save()
 
