@@ -47,8 +47,15 @@ class ScraperSession(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    @property
+    def finished(self):
+        """Check whether the session had been finished or not
+        """
+        return True if self.status in ['C', 'F'] else False
+
     def write_log(self, *args, **kwargs):
         print
+
 
     @models.permalink
     def get_absolute_url(self):
@@ -97,6 +104,16 @@ class ScraperSession(models.Model):
 
         return success
 
-    def get_node(self, node_name, columns=()):
+    def get_node(self, node_name, columns=(), exact=False, include_timestamp=False):
         return self.storage.row(node_name, columns,
                                 timestamp=int(self.created_at.strftime('%s')))
+
+    def all_nodes(self, columns, exact=True, include_timestamp=True):
+        timestamp = int(self.created_at.strftime('%s'))
+
+        nodes = [node for node in self.storage.scan(
+            columns=columns, timestamp=timestamp+1,
+            limit=self.max_nodes, include_timestamp=include_timestamp)
+            if int(node[1][columns[0]]) == timestamp]
+
+        return nodes

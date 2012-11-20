@@ -1,10 +1,12 @@
 from django.shortcuts import render_to_response, redirect
+from django.htpp import HttpResponse
 from django.template import RequestContext
 from models import ScraperProfile, ScraperSession
 from forms import ScrapingForm
 import _opic
 import logging
 from django_rq import job, enqueue, get_connection
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -91,11 +93,17 @@ def new_session(request, profile_id):
                               },
                               context_instance=RequestContext(request))
 
-def update(request, scraper_profile_id):
+def update(request, scraper_profile_id, session_id):
     """
     HTTP polling
     """
-    return
+    session = ScraperSession.objects.get(pk=session_id)
+    response = {'polling': True}
+    if not session.finished:
+        response['polling'] = False
+    else:
+        response['nodes'] = []
+    return HttpResponse(json.dumps(response), mimetype='application/json')
 
 def total_sessions(request):
     pass
