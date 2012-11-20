@@ -346,6 +346,13 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
         graph = sorted(graph,
                             key=lambda x: x.setdefault('importance', 0),
                             reverse=True)
+
+
+        if writer is not None:
+            log('Start insert into DB')
+            writer(graph)
+            log('Successfully')
+
         # get top frontiers node to main graph and keep on crawling
         # reserve graph for the next crawling
         frontiers = sorted(frontiers,
@@ -353,6 +360,9 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
                             reverse=True)
         graph_size = len(graph)
         available_added_nodes = max_nodes - graph_size
+
+
+
         if available_added_nodes == 0:
             """
             we hit the upper bound
@@ -374,11 +384,12 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
     log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
     [log(x['name'], x['importance']) for x in graph]
 
+    """
     if writer is not None:
         log('Start insert into DB')
         writer(graph)
         log('Successfully')
-
+    """
     for x in graph:
         if x.has_key('content') and x['content'] and x['keywords_count'] > 0:
 #            log(x['content'])
