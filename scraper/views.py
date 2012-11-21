@@ -1,5 +1,5 @@
 from django.shortcuts import render_to_response, redirect
-from django.htpp import HttpResponse
+from django.http import HttpResponse
 from django.template import RequestContext
 from models import ScraperProfile, ScraperSession
 from forms import ScrapingForm
@@ -67,14 +67,13 @@ def session(request, profile_id, session_id):
     session = ScraperSession.objects.get(pk=session_id)
     profile = session.profile
     sessions = ScraperSession.objects.filter(profile=profile).order_by('-created_at')
-    nodes = [i for i in session.storage.scan(
-        columns = ['history:opic', 'text:keywords_count' ,'text:content'],
-        timestamp=int(session.created_at.strftime('%s'))+1,
-        limit=session.max_nodes)]
+    columns = ['history:opic', 'text:keywords_count' ,'text:content']
 
-    nodes = sorted([(node[0], node[1]['history:opic'], node[1]['text:keywords_count'],
-              node[1]['text:content'])
-                    for node in nodes], key=lambda node: float(node[1]), reverse=True)
+    nodes = session.all_nodes(columns)
+
+    nodes = sorted([(node[0], node[1]['history:opic'][0], node[1]['text:keywords_count'][0],
+              node[1]['text:content'][0])
+                    for node in nodes], key=lambda node: float(node[1][0]), reverse=True)
     return render_to_response('scraper/profile.html',
                               {'profile': profile, 'sessions': sessions,
                                'current_session': session, 'nodes': nodes},
@@ -93,16 +92,25 @@ def new_session(request, profile_id):
                               },
                               context_instance=RequestContext(request))
 
-def update(request, scraper_profile_id, session_id):
+def update(request, profile_id, session_id):
     """
     HTTP polling
     """
     session = ScraperSession.objects.get(pk=session_id)
     response = {'polling': True}
-    if not session.finished:
+    if session.finished:
         response['polling'] = False
-    else:
-        response['nodes'] = []
+
+    columns = ['history:opic', 'text:keywords_count' ,'text:content']
+    nodes = session.all_nodes(columns)
+
+    response['nodes'] = sorted([(node[0], node[1]['history:opic'][0],
+                                 node[1]['text:keywords_count'][0],
+                                 node[1]['text:content'][0])
+                                for node in nodes],
+                               key=lambda node: float(node[1][0]),
+                               reverse=True)
+
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 def total_sessions(request):

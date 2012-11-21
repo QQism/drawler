@@ -114,6 +114,6 @@ class ScraperSession(models.Model):
         nodes = [node for node in self.storage.scan(
             columns=columns, timestamp=timestamp+1,
             limit=self.max_nodes, include_timestamp=include_timestamp)
-            if int(node[1][columns[0]]) == timestamp]
+            if (not exact) or int(node[1][columns[0]][1]) == timestamp]
 
         return nodes

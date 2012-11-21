@@ -341,7 +341,12 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
                 log('ssssssssssss')
 
         log('History :' + str(history))
-        total_importance = sum([compute_importance(node, history) for node in graph])
+        total_importance = total_occurances = 0
+        for node in graph:
+            total_importance += compute_importance(node, history)
+            total_occurances += keywords_occurances(node, kw_re)
+
+        #total_importance = sum([compute_importance(node, history) for node in graph])
         log('Total Importance: ' + str(total_importance))
         graph = sorted(graph,
                             key=lambda x: x.setdefault('importance', 0),
@@ -368,7 +373,7 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
             we hit the upper bound
             Try to calculate the keyword points
             """
-            total_occurances += sum([keywords_occurances(node, kw_re) for node in graph])
+            #total_occurances += sum([keywords_occurances(node, kw_re) for node in graph])
             break
         elif max_added_nodes > available_added_nodes:
             graph.extend(frontiers[0:available_added_nodes])
