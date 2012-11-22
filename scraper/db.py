@@ -1,8 +1,10 @@
 import happybase
 
 HBASE_SETTINGS = {'host': '127.0.0.1', 'port': '9090'}
+CONNECTION = None
 
 def initialize_hbase_connection(host=None, port=None):
+    global HBASE_SETTINGS
     if host is None:
         host = HBASE_SETTINGS['host']
 
@@ -25,7 +27,12 @@ def create_hbase_table(connection, table_name):
                                         })
 
 def get_table(table_name):
-    connection = initialize_hbase_connection()
+    global CONNECTION
+    connection = CONNECTION
+    if connection is None:
+        connection = initialize_hbase_connection()
+        CONNECTION = connection
+
     assert hasattr(connection, 'tables')
     if table_name not in connection.tables():
         create_hbase_table(connection, table_name)
