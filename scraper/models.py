@@ -57,6 +57,10 @@ class ScraperSession(models.Model):
         print
 
 
+    @property
+    def timestamp(self):
+        return int(self.created_at.strftime('%s'))
+
     @models.permalink
     def get_absolute_url(self):
         return ('scraper.views.session', (), {'profile_id': str(self.profile.id),
@@ -88,7 +92,7 @@ class ScraperSession(models.Model):
             # list of nodes
             nodes = data
             #pprint.PrettyPrinter(indent=4).pprint(nodes)
-            with self.storage.batch(timestamp=int(self.created_at.strftime('%s')),
+            with self.storage.batch(timestamp=self.timestamp,
                                     batch_size=1000) as b:
                 for node in nodes:
                     try:
@@ -109,11 +113,11 @@ class ScraperSession(models.Model):
                                 timestamp=int(self.created_at.strftime('%s')))
 
     def all_nodes(self, columns, exact=True, include_timestamp=True):
-        timestamp = int(self.created_at.strftime('%s'))
-
         nodes = [node for node in self.storage.scan(
-            columns=columns, timestamp=timestamp+1,
-            limit=self.max_nodes, include_timestamp=include_timestamp)
-            if (not exact) or int(node[1][columns[0]][1]) == timestamp]
+            columns=columns, timestamp=self.timestamp+1,
+            include_timestamp=include_timestamp)
+            if (not exact) or int(node[1][columns[0]][1]) == self.timestamp]
 
-        return nodes
+        #sorting
+
+        return nodes[:self.max_nodes]
