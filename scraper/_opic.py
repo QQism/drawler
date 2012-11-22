@@ -138,6 +138,8 @@ def visit_link(node, crawler=None, children_url_re=None, cache=None):
         except Exception as ex:
             log(node['name'], ex)
             node['children'] = []
+            node['raw_content'] = ''
+
     return tuple(node.setdefault('children',[]))
 
 def initial_values(node, node_count):
@@ -389,12 +391,12 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
     log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
     [log(x['name'], x['importance']) for x in graph]
 
-    """
+    
     if writer is not None:
         log('Start insert into DB')
         writer(graph)
         log('Successfully')
-    """
+
     for x in graph:
         if x.has_key('content') and x['content'] and x['keywords_count'] > 0:
 #            log(x['content'])
