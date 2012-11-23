@@ -67,13 +67,11 @@ def session(request, profile_id, session_id):
     session = ScraperSession.objects.get(pk=session_id)
     profile = session.profile
     sessions = ScraperSession.objects.filter(profile=profile).order_by('-created_at')
-    columns = ['history:opic', 'text:keywords_count' ,'text:content']
+    columns = ['history:opic', 'text:keywords_count' ,'text:content', 'history:kopic']
 
     nodes = session.all_nodes(columns)
+    nodes = extract_nodes(nodes)
 
-    nodes = sorted([(node[0], node[1]['history:opic'][0], node[1]['text:keywords_count'][0],
-              node[1]['text:content'][0])
-                    for node in nodes], key=lambda node: float(node[1][0]), reverse=True)
     return render_to_response('scraper/profile.html',
                               {'profile': profile, 'sessions': sessions,
                                'current_session': session, 'nodes': nodes},
@@ -101,7 +99,7 @@ def update(request, profile_id, session_id):
     if session.finished:
         response['polling'] = False
 
-    columns = ['history:opic', 'text:keywords_count' ,'text:content']
+    columns = ['history:opic', 'text:keywords_count' ,'text:content', 'history:kopic']
     nodes = session.all_nodes(columns)
 
     response['nodes'] = sorted([(node[0], node[1]['history:opic'][0],
@@ -113,6 +111,16 @@ def update(request, profile_id, session_id):
 
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
+def extract_nodes(nodes, limit=100):
+    return sorted([(node[0], node[1]['history:opic'][0],
+                    node[1]['text:keywords_count'][0],
+                    node[1]['text:content'][0],
+                    node[1]['history:kopic'][0])
+                   for node in nodes],
+                  key=lambda node: float(node[4]),
+                  reverse=True)[:limit]
+
+
 def total_sessions(request):
     pass
 
@@ -123,16 +131,19 @@ def scrape(session_id):
     profile = session.profile
     session.status = 'P'
     session.save()
-    result = _opic.start(domain=profile.url,
-                template=profile.template,
-                max_nodes=session.max_nodes,
-                max_added_nodes=session.max_added_nodes,
-                keywords=profile.keywords,
-                writer=session.save_node,
-                cache=session.get_node)
-    if result:
+    try:
+        result = _opic.start(domain=profile.url,
+                    template=profile.template,
+                    max_nodes=session.max_nodes,
+                    max_added_nodes=session.max_added_nodes,
+                    keywords=profile.keywords,
+                    writer=session.save_node,
+                    cache=session.get_node)
+
         session.status = 'C'
-    else:
+    except Exception as ex:
+        print ex
         session.status = 'F'
-    session.save()
+    finally:
+        session.save()
 

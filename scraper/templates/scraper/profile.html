@@ -66,7 +66,7 @@
             <div class="accordion-group">
                 <div class="accordion-heading">
                     <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapse{{ forloop.counter }}">
-                        {{ node.0 }} || {{ node.1 }} || {{ node.2 }}
+                        {{ node.0 }} || {{ node.1 }} || {{ node.2 }} || {{ node.4 }}
                     </a>
                 </div>
                 <div id="collapse{{ forloop.counter }}" class="accordion-body collapse in">
@@ -118,7 +118,7 @@ var test;
             nodes.forEach(function(node, index) {
                 html += '<div class="accordion-group"><div class="accordion-heading">';
                 html += '<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapse'+ index +'">';
-                html += node[0] + '||' + node[1] + '||' + node[2];
+                html += node[0] + '||' + node[1] + '||' + node[2] + '||' + node[4];
                 html += '</a>';
                 html+= '</div>';
                 html += '<div id="collapse' + index +'" class="accordion-body collapse in">';
@@ -153,7 +153,7 @@ var test;
         $(".scraping-content").each(function(index, element) {
             console.log(element);
             keywords.forEach(function(value){
-                element.innerHTML = element.innerHTML.replace(value, '<strong>' + value + '</strong>');
+                element.innerHTML = element.innerHTML.replaceAll(value, '<strong>' + value + '</strong>', true);
             })
         })
     }
@@ -161,6 +161,29 @@ var test;
     {% for keyword in profile.keywords %}
         keywords.push('{{ keyword }}');
     {% endfor %}
+
+    String.prototype.replaceAll = function(token, newToken, ignoreCase) {
+        var str, i = -1, _token;
+        if((str = this.toString()) && typeof token === "string") {
+            _token = ignoreCase === true? token.toLowerCase() : undefined;
+            while((i = (
+                _token !== undefined? 
+                str.toLowerCase().indexOf(
+                    _token, 
+                    i >= 0? i + newToken.length : 0
+                ) : str.indexOf(
+                token,
+                i >= 0? i + newToken.length : 0
+                )
+            )) !== -1 ) {
+                str = str.substring(0, i)
+                .concat(newToken)
+                .concat(str.substring(i + token.length));
+            }
+        }
+        return str;
+    };
+
     mark_keywords(keywords);
 }).call(this);
 </script>

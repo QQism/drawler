@@ -86,7 +86,8 @@ class ScraperSession(models.Model):
                     'text:content': content.encode('utf-8'),
                     'text:keywords_count': str(node['keywords_count']),
                     'history:opic': str(node['importance']),
-                    'history:g': str(node['history'])}
+                    'history:g': str(node['history']),
+                    'history:kopic': str(node['kopic'])}
 
         if isinstance(data, dict):
             # this is the single node, in dictionary type
