@@ -96,52 +96,54 @@
 var test;
 (function () {
     {% if profile and current_session %}
-    function polling_result(){
-    //console.log('ookkk');
-    $.ajax({
-        url: '{% url scraper:update profile.pk current_session.pk %}',
-        dataType: 'json',
-        'data': {},
-        success: function(data, textStatus) {
-            test = data;
-            if (!data['polling'])
-                window.clearInterval(polling_id);
+        function polling_result(){
+            //console.log('ookkk');
+            $.ajax({
+                url: '{% url scraper:update profile.pk current_session.pk %}',
+                dataType: 'json',
+                'data': {},
+                success: function(data, textStatus) {
+                    test = data;
+                    if (!data['polling'])
+                        window.clearInterval(polling_id);
 
-            update_pages(data['nodes']);
+                    update_pages(data['nodes']);
+                }
+            })
+        };
+
+        function update_pages(nodes) {
+            $('#accordion2').fadeOut();
+            var html = ''
+            nodes.forEach(function(node, index) {
+                html += '<div class="accordion-group"><div class="accordion-heading">';
+                html += '<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapse'+ index +'">';
+                html += node[0] + '||' + node[1] + '||' + node[2];
+                html += '</a>';
+                html+= '</div>';
+                html += '<div id="collapse' + index +'" class="accordion-body collapse in">';
+                html += '<div class="accordion-inner">';
+
+                if (node[3]){
+                    html += '<p class="scraping-content">';
+                    html += node[3];
+                    html += '</p>';
+                } else {
+                    html += '<span>No appropriated content</span>';
+                }
+                html +='</div></div></div>';
+
+            });
+
+            $('#accordion2').html(html);
+
+            $('#accordion2').fadeIn();
+            nodes
         }
-    })
-    };
-
-    function update_pages(nodes) {
-        $('#accordion2').fadeOut();
-        var html = ''
-        nodes.forEach(function(node, index) {
-            html += '<div class="accordion-group"><div class="accordion-heading">';
-            html += '<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapse'+ index +'">';
-            html += node[0] + '||' + node[1] + '||' + node[2];
-            html += '</a>';
-            html+= '</div>';
-            html += '<div id="collapse' + index +'" class="accordion-body collapse in">';
-            html += '<div class="accordion-inner">';
-
-            if (node[3]){
-                html += '<p class="scraping-content">';
-                html += node[3];
-                html += '</p>';
-            } else {
-                html += '<span>No appropriated content</span>';
-            }
-            html +='</div></div></div>';
-
-        });
-
-        $('#accordion2').html(html);
-
-        $('#accordion2').fadeIn();
-        nodes
-    }
-//    var polling_id = setInterval(polling_result, 5000);
-    {% endif %}
+        {% if not current_session.finished %}
+            var polling_id = setInterval(polling_result, 5000);
+        {% endif %}
+        {% endif %}
 
     function refresh_table(){
 

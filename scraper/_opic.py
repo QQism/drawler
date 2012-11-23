@@ -236,7 +236,7 @@ def build_keywords_re(keywords):
     kw = ur'|'.join(keywords)
     return re.compile(ur'(' + kw + ')', re.UNICODE + re.IGNORECASE)
 
-def keywords_occurances(node, keywords_re):
+def keywords_occurrences(node, keywords_re):
     try:
         content = node.setdefault('content', ())
         node['keywords_count'] = sum([len(keywords_re.findall(i))
@@ -248,6 +248,9 @@ def keywords_occurances(node, keywords_re):
         node['keywords_count'] = 0
 
     return node['keywords_count']
+
+def calculate_kopic(opic, kw_occurrences, total_kw_occurrences):
+    return opic * (1 + float(kw_occurrences)/total_kw_occurrences)
 
 def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
           max_nodes=10, max_added_nodes=2, keywords=(u'trung quốc',),
@@ -308,7 +311,7 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
     max_added_nodes # how many nodes added per crawling
     max_nodes # soft limit
     kw_re = build_keywords_re(keywords)
-    total_occurances = 0
+
     while True:
         t += 1
         #time.sleep(3)
@@ -316,6 +319,8 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
         graph = [initial_values(node, len(graph)) for node in graph]
         log([x['name'] for x in graph])
         last_node = None
+        total_occurrences = 0
+
         while True:
             """" the select node that has most cash """
             node = max(graph, key=lambda x: x['cash'])
@@ -331,6 +336,7 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
                                        crawler,
                                        children_url_re, cache)
 
+
             if node.has_key('raw_content') and not node.has_key('content'):
                 log('SSSSSSSSS')
                 log(node['name'])
@@ -342,12 +348,13 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
                 log(content)
                 log('ssssssssssss')
 
+            total_occurrences += keywords_occurrences(node, kw_re)
+
         log('History :' + str(history))
-        total_importance = total_occurances = 0
+        total_importance = total_occurrences = 0
         for node in graph:
             total_importance += compute_importance(node, history)
-            total_occurances += keywords_occurances(node, kw_re)
-
+            calculate_kopic(node['opic'], )
         #total_importance = sum([compute_importance(node, history) for node in graph])
         log('Total Importance: ' + str(total_importance))
         graph = sorted(graph,
@@ -401,5 +408,5 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
         if x.has_key('content') and x['content'] and x['keywords_count'] > 0:
 #            log(x['content'])
             log(x['keywords_count'])
-    return total_occurances
+    return total_occurrences
     #return graph

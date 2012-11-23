@@ -77,8 +77,12 @@ class ScraperSession(models.Model):
             content = (u' '.join(node['content']))
             #if content:
             #    print content.encode('utf-8')
+            if isinstance(node['raw_content'], unicode):
+                raw_content = node['raw_content'].encode('utf-8')
+            else:
+                raw_content = node['raw_content']
 
-            return {'text:raw': node['raw_content'].encode('utf-8'),
+            return {'text:raw': raw_content,
                     'text:content': content.encode('utf-8'),
                     'text:keywords_count': str(node['keywords_count']),
                     'history:opic': str(node['importance']),

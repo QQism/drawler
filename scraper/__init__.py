@@ -11,7 +11,7 @@ class Crawler(object):
     cookie = None
     response = None
     base_url = ''
-    COOKIEFILE = 'mycookie'
+    COOKIEFILE = 'tmp/mycookie'
     default_user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.4 (KHTML, like Gecko) Chrome/22.0.1229.94 Safari/537.4'
     default_url = 'http://www.example.com'
 
@@ -155,5 +155,3 @@ class TemplateProcessor(object):
         if isinstance(elements, list) and len(elements) == 1:
             return self.dearray(elements[0])
         return elements
-
-
