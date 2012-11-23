@@ -117,7 +117,7 @@ def visit_link(node, crawler=None, children_url_re=None, cache=None):
             response = None
             if cache:
                 result = cache(node['name'], ['text:raw'])
-                log(result)
+                #log(result)
                 #input()
                 if result:
                     response = result['text:raw']
@@ -138,7 +138,7 @@ def visit_link(node, crawler=None, children_url_re=None, cache=None):
         except Exception as ex:
             log(node['name'], ex)
             node['children'] = []
-            node['raw_content'] = ''
+            node['raw_content'] = u''
 
     return tuple(node.setdefault('children',[]))
 
@@ -391,7 +391,7 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
     log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
     [log(x['name'], x['importance']) for x in graph]
 
-    
+
     if writer is not None:
         log('Start insert into DB')
         writer(graph)

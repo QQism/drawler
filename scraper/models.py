@@ -1,6 +1,7 @@
 from django.db import models
 from db import get_table
 import pprint
+import sys, traceback
 
 class ScraperProfile(models.Model):
     name = models.CharField('Name', max_length=255, null=False, blank=False)
@@ -70,13 +71,15 @@ class ScraperSession(models.Model):
         success = False
 
         def pack_node(node):
-            if hasattr(node['content'], 'encode'):
-                content = node['content'].encode('utf-8')
-            else:
-                content = (u' '.join(node['content'])).encode('utf-8')
+            #if hasattr(node['content'], 'encode'):
+            #    content = node['content'].encode('utf-8')
+            #else:
+            content = (u' '.join(node['content']))
+            #if content:
+            #    print content.encode('utf-8')
 
-            return {'text:raw': node['raw_content'],
-                    'text:content': content,
+            return {'text:raw': node['raw_content'].encode('utf-8'),
+                    'text:content': content.encode('utf-8'),
                     'text:keywords_count': str(node['keywords_count']),
                     'history:opic': str(node['importance']),
                     'history:g': str(node['history'])}
@@ -92,17 +95,47 @@ class ScraperSession(models.Model):
             # list of nodes
             nodes = data
             #pprint.PrettyPrinter(indent=4).pprint(nodes)
+            """
             with self.storage.batch(timestamp=self.timestamp,
                                     batch_size=1000) as b:
                 for node in nodes:
                     try:
                         b.put(node['name'].encode('utf-8'), pack_node(node))
+                        print '()'*60
+                        print node['name']
+                        print '()'*60
                     except Exception as e:
                         #print node
-                        print 'error'
-                        print node['name']
-                        print e
+                        print 'ERRRRRRRRRRRRRRROOR'
+                        #print node['name']
+                        print node['name'], e
+                        print "Exception in user code:"
+                        print '-'*60
+                        traceback.print_exc(file=sys.stdout)
+                        print '-'*60
                         print 'end'
+            """
+            b = self.storage.batch(timestamp=self.timestamp)
+            for node in nodes:
+                try:
+                    b.put(node['name'].encode('utf-8'), pack_node(node))
+                    print '()'*60
+                    print node['name']
+                    print '()'*60
+                except Exception as e:
+                    #print node
+                    print 'ERRRRRRRRRRRRRRROOR'
+                    #print node['name']
+                    print node['name'], e
+                    print "Exception in user code:"
+                    print '-'*60
+                    traceback.print_exc(file=sys.stdout)
+                    print '-'*60
+                    print 'end'
+
+            print 'NOW SEND PATCH'
+            b.send()
+
         else:
             success = False
 

@@ -2,8 +2,10 @@ import mechanize
 import cookielib
 import os
 from StringIO import StringIO
+import codecs
 import gzip
 from bs4 import BeautifulSoup
+import urllib
 
 class Crawler(object):
     cookie = None
@@ -62,16 +64,22 @@ class Crawler(object):
         return self.response
 
     def goto(self, url):
-        self.response = self.process(self.br.open(url))
+        # avoid bad urls
+        full_url = urllib.quote(url, safe="%/:=&?~#+!$,;'@()*[]")
+        self.response = self.process(self.br.open(full_url))
         return self.response
 
     def process(self, response):
         if response.info().get('Content-Encoding') == 'gzip':
             buf = StringIO(response.read())
             f = gzip.GzipFile(fileobj=buf)
-            data = f.read()
+            stream = f
         else:
-            data = response.read()
+            stream = response
+
+        reader = codecs.getreader('utf-8')
+        fh = reader(stream)
+        data = fh.read()
         return data
 
     @classmethod
