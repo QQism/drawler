@@ -6,6 +6,7 @@ import re
 from bs4 import BeautifulSoup as Soup
 from . import Crawler, TemplateProcessor
 import re
+from datetime import datetime
 
 try:
     from urllib.parse import urlparse
@@ -116,12 +117,18 @@ def visit_link(node, crawler=None, children_url_re=None, cache=None):
         try:
             response = None
             if cache:
-                result = cache(node['name'], ['text:raw'])
+                result = cache(node['name'], ['text:raw'], include_timestamp=True)
                 #log(result)
                 #input()
                 if result:
-                    response = result['text:raw']
-                    log(node['name'], 'CACHE')
+                    last_cache_timestamp = int(result['text:raw'][1])
+                    current_timestamp = int(datetime.utcnow().strftime('%s'))
+                    expired_secs = 3 * 24 * 60 * 60 # days * hours * minutes * seconds
+                    interval = current_timestamp - last_cache_timestamp
+
+                    if interval < expired_secs:
+                        response = result['text:raw'][0]
+                        log(node['name'], 'CACHE')
 
             if not response:
                 response = crawler.goto(node['name'])
