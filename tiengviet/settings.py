@@ -114,6 +114,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     'django_extensions',
+    'registration',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'south',
@@ -121,6 +122,7 @@ INSTALLED_APPS = (
     'lexis',
     'scraper',
     'django_rq',
+    'users',
 #    'django_bootstrap_breadcrumbs',
 )
 
