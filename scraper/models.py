@@ -45,6 +45,9 @@ class ScraperSession(models.Model):
     # calling self.get_status_display()
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='W')
 
+    # callback URL
+    callback_url = models.URLField('Callback URL', null=True, blank=True, default='')
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

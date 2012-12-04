@@ -17,4 +17,5 @@ urlpatterns = patterns('',
                        url(r'^(?P<profile_id>\d+)/(?P<session_id>\d+)/update',
                            'scraper.views.update',
                            name='update'),
+                       url(r'api/', include('scraper.api_urls', namespace='api'), 'scraper_api'),
                       )
