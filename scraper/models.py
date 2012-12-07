@@ -2,12 +2,16 @@ from django.db import models
 from db import get_table
 import pprint
 import sys, traceback
+import json
+from users.models import User
 
 class ScraperProfile(models.Model):
     name = models.CharField('Name', max_length=255, null=False, blank=False)
     url = models.URLField('URL', max_length=200, null=False, blank=False)
     template = models.TextField('Template', blank=True, default='')
     keywords_text = models.TextField('Keywords', blank=True, default='')
+
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -39,7 +43,7 @@ class ScraperSession(models.Model):
     description = models.TextField()
     max_nodes = models.IntegerField()
     max_added_nodes = models.IntegerField()
-    timeout = models.IntegerField()
+    timeout = models.IntegerField(default=0)
     storage = get_table('websites')
 
     # calling self.get_status_display()
@@ -47,6 +51,9 @@ class ScraperSession(models.Model):
 
     # callback URL
     callback_url = models.URLField('Callback URL', null=True, blank=True, default='')
+
+    # meta
+    meta_text = models.TextField(default='{}', null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -60,6 +67,17 @@ class ScraperSession(models.Model):
     def write_log(self, *args, **kwargs):
         print
 
+    @property
+    def meta(self):
+        if not hasattr(self, '_session_meta'):
+            print 'No __meta yet'
+            self._session_meta = json.loads(self.meta_text)
+            if not self._session_meta:
+                print 'No meta'
+                print self._session_meta
+                self._session_meta = {}
+
+        return self._session_meta
 
     @property
     def timestamp(self):
@@ -69,6 +87,12 @@ class ScraperSession(models.Model):
     def get_absolute_url(self):
         return ('scraper.views.session', (), {'profile_id': str(self.profile.id),
                                               'session_id': str(self.id)})
+
+
+    def save(self, *args, **kwargs):
+        self.meta_text = json.dumps(self.meta)
+        super(type(self), self).save(*args, **kwargs)
+
 
     def save_node(self, data):
         success = False
@@ -151,7 +175,8 @@ class ScraperSession(models.Model):
 
     def get_node(self, node_name, columns=(), exact=False, include_timestamp=False):
         return self.storage.row(node_name, columns,
-                                timestamp=int(self.created_at.strftime('%s')))
+                                timestamp=int(self.created_at.strftime('%s')),
+                                include_timestamp=include_timestamp)
 
     def all_nodes(self, columns, exact=True, include_timestamp=True):
         nodes = [node for node in self.storage.scan(
