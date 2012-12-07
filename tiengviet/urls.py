@@ -23,4 +23,5 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^lexis/', include('lexis.urls', namespace="lexis"), name="lexis_urls"),
     url(r'^scraper/', include('scraper.urls', namespace="scraper"), name="scraper_urls"),
+    url(r'^users/', include('users.urls')),
 )

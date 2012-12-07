@@ -120,7 +120,7 @@ def visit_link(node, crawler=None, children_url_re=None, cache=None):
                 result = cache(node['name'], ['text:raw'], include_timestamp=True)
                 #log(result)
                 #input()
-                if result:
+                if result and result['text:raw']:
                     last_cache_timestamp = int(result['text:raw'][1])
                     current_timestamp = int(datetime.utcnow().strftime('%s'))
                     expired_secs = 3 * 24 * 60 * 60 # days * hours * minutes * seconds
@@ -289,6 +289,8 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
     Set an interval for all pages to be re-fetched
     Dont fetch pages that
 
+    Return total pages(nodes) fetched, total keywords found
+
     :param domain: domain of the site need to be scraped
     :param template: template is used to extract the content of a page in part
     :param max_nodes: integer, maximum nodes(pages) that are allowed to be
@@ -337,6 +339,7 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
         last_node = None
         total_occurrences = {}
         history = 0
+        sum_kw = 0
         while True:
             """" the select node that has most cash """
             node = max(graph, key=lambda x: x['cash'])
@@ -435,5 +438,6 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
         if x.has_key('content') and x['content'] and x['keywords_count'] > 0:
 #            log(x['content'])
             log(x['keywords_count'])
-    return True
-    #return graph
+
+
+    return (len(graph), sum_kw)

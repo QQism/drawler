@@ -123,6 +123,7 @@ INSTALLED_APPS = (
     'scraper',
     'django_rq',
     'users',
+    'tastypie',
 #    'django_bootstrap_breadcrumbs',
 )
 
@@ -169,3 +170,6 @@ RQ_QUEUES = {
         'PASSWORD': ''
     }
 }
+
+LOGIN_URL = '/users/login/'
+LOGOUT_URL = '/users/logout/'
