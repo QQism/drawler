@@ -1,0 +1,14 @@
+{% extends "scraper/home.html" %}
+{% block scraper-content %}
+<div class='form'>
+  <form action='' class='form-' method='post'>
+    <fieldset>
+      <legend>Create scraper profile</legend>
+      {% csrf_token %}
+      {{ form.as_p }}
+      <!--<span class='error'>{{ form.errors.as_p }}</span>-->
+      <input type='submit' class='btn' value='Create' name='Create' />
+    </fieldset>
+  </form>
+</div>
+{% endblock %}

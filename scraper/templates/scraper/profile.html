@@ -71,12 +71,13 @@
                 </div>
                 <div id="collapse{{ forloop.counter }}" class="accordion-body collapse in">
                     <div class="accordion-inner">
+                        <a href='{{ node.0 }}'>{{ node.0 }}</a>
                         {% if node.3 %}
                         <p class="scraping-content">
                         {{ node.3 }}
                         </p>
                         {% else %}
-                        <span>No appropriated content</span>
+                        <span>No expected content</span>
                         {% endif %}
                     </div>
                 </div>
@@ -129,7 +130,7 @@ var test;
                     html += node[3];
                     html += '</p>';
                 } else {
-                    html += '<span>No appropriated content</span>';
+                    html += '<span>No expected content</span>';
                 }
                 html +='</div></div></div>';
 

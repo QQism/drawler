@@ -13,6 +13,8 @@
         {% endblock %}
         {% render_breadcrumbs %}
 
+        {% block scraper-content %}
+        {% endblock %}
         <ul>
         {% if profiles %}
         {% for site in profiles %}
