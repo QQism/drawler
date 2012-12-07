@@ -33,7 +33,7 @@ def new_profile(request):
             data = form.data
             profile = ScraperProfile(name=data['name'],
                     url=data['url'],
-                    template=form['template'],
+                    template=form['template'].value(),
                     keywords_text=form['keywords'].value(),
                     user=request.user)
             profile.save()
@@ -78,7 +78,7 @@ def sessions(request, profile_id):
                                          timeout=int(form.data['timeout']))
             new_session.save()
             #enqueue(scrape, session_id=new_session.pk)
-            scrape.delay(new_session.id)
+            #scrape.delay(new_session.id)
             #_opic.start()
             return redirect('scraper:session', profile_id=profile.id,
                             session_id=new_session.id)
@@ -152,32 +152,3 @@ def total_sessions(request):
 def request_callback_url(session):
     """Righ after the scraping session finished, call the callback url"""
     return requests.post(session.callback_url) if session.callback_url else None
-
-
-@job('default', connection=get_connection('default'), timeout=60000)
-def scrape(session_id):
-    session = ScraperSession.objects.get(pk=session_id)
-    profile = session.profile
-    session.status = 'P'
-    session.save()
-    try:
-        result = _opic.start(domain=profile.url,
-                    template=profile.template,
-                    max_nodes=session.max_nodes,
-                    max_added_nodes=session.max_added_nodes,
-                    keywords=profile.keywords,
-                    writer=session.save_node,
-                    cache=session.get_node)
-
-        session.status = 'C'
-    except Exception as ex:
-        print ex
-        session.status = 'F'
-        result = (0, 0) # no fetched pages, no kw found
-    finally:
-        session.meta['fetched_pages'] = result[0]
-        session.meta['found_keywords'] = result[1]
-
-        session.save()
-        request_callback_url(session)
-

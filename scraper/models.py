@@ -1,9 +1,13 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from db import get_table
 import pprint
 import sys, traceback
 import json
 from users.models import User
+from django_rq import job, enqueue, get_connection
+import _opic
 
 class ScraperProfile(models.Model):
     name = models.CharField('Name', max_length=255, null=False, blank=False)
@@ -187,3 +191,43 @@ class ScraperSession(models.Model):
         #sorting
 
         return nodes[:self.max_nodes]
+
+
+def request_callback_url(session):
+    """Righ after the scraping session finished, call the callback url"""
+    return requests.post(session.callback_url) if session.callback_url else None
+
+
+@receiver(post_save, sender=ScraperSession)
+def queue_scraping(sender, **kwargs):
+    if kwargs['created']:
+        new_session = kwargs['instance']
+        scrape.delay(new_session.id)
+
+
+@job('default', connection=get_connection('default'), timeout=60000)
+def scrape(session_id):
+    session = ScraperSession.objects.get(pk=session_id)
+    profile = session.profile
+    session.status = 'P'
+    session.save()
+    try:
+        result = _opic.start(domain=profile.url,
+                    template=profile.template,
+                    max_nodes=session.max_nodes,
+                    max_added_nodes=session.max_added_nodes,
+                    keywords=profile.keywords,
+                    writer=session.save_node,
+                    cache=session.get_node)
+
+        session.status = 'C'
+    except Exception as ex:
+        print ex
+        session.status = 'F'
+        result = (0, 0) # no fetched pages, no kw found
+    finally:
+        session.meta['fetched_pages'] = result[0]
+        session.meta['found_keywords'] = result[1]
+
+        session.save()
+        request_callback_url(session)

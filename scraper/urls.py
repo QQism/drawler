@@ -1,7 +1,4 @@
 from django.conf.urls.defaults import patterns, include, url
-from .handlers import SessionResource
-
-session_resource = SessionResource()
 
 urlpatterns = patterns('',
                        url(r'^$', 'scraper.views.home', name='home'),
@@ -22,5 +19,4 @@ urlpatterns = patterns('',
                            'scraper.views.update',
                            name='update'),
                        url(r'api/', include('scraper.api_urls')),
-                       url(r'api1/', include(session_resource.urls)),
                       )
