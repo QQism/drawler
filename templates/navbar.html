@@ -1,30 +1,69 @@
 {% load i18n %}
 <div class="navbar navbar-fixed-top">
-    <div class="navbar-inner">
-        <div class="container-fluid">
-            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </a>
-            <a class="nav pull-left">
-                <!-- <img src="{{ STATIC_URL }}img/custom/logo-nav.png"
+  <div class="navbar-inner">
+    <div class="container-fluid">
+      <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </a>
+      <a class="nav pull-left">
+        <!-- <img src="{{ STATIC_URL }}img/custom/logo-nav.png"
                      alt="" style="padding-top: 5px" /> -->
-            </a>
-            <a class="brand" href="#">
-                <strong>tiengviet</strong></a>
-
-            <div class="nav-collapse">
-                <ul class="nav top-bar pull-right">
-                    <!--
+      </a>
+      <a class="brand" href="#">
+        <strong>(m)yScraper</strong></a>
+      {% if user.is_authenticated %}
+      <div class="btn-group pull-right">
+        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+          <i class="icon-user"></i> {{ user.username }}
+          <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu">
+          <li><a href="#">Profile</a></li>
+          <li class="divider"></li>
+          <li><a href="{% url auth_logout %}">Sign Out</a></li>
+        </ul>
+      </div>
+      {% else %}
+      <ul class="nav pull-right">
+        <li class="dropdown">
+        <a class="dropdown-toggle" href="#" data-toggle="dropdown">
+          Sign in
+          <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu dropdown-form">
+          <form action="{% url auth_login %}" method="post" class="nav span3">
+            {# <form action="{% url games:game_index %}" method="post" class="nav span3"> #}
+              {% csrf_token %}
+              <p>
+              <label for="id_username">{% trans "Username" %}</label>
+              <input id="id_username" name="username" type="text" maxlength="30"/>
+              </p>
+              <p>
+              <label>{% trans "Password" %}</label>
+              <input id="id_username" name="password" type="password" maxlength="30"/>
+              </p>
+              <input type="submit" value="{% trans 'Sign in'%}" />
+              <input type="hidden" value="{{ request.get_full_path }}" name="next" />
+            </form>
+            <a href="{% url auth_password_reset %}">{% trans "Forgot password?" %}</a>
+            <a href="{% url registration_register %}">{% trans "Register" %}</a>
+          </ul>
+          </li>
+        </ul>
+        {% endif %}
+        <div class="nav-collapse">
+          <ul class="nav top-bar pull-right">
+            <!--
                     <li class=""><a href="">Home</a></li>
                     <li class=""><a href="">Games</a></li> 
                     <li class=""><a href="">News</a></li>
                     <li class=""><a href="">Mobile</a></li>
                     <li class=""><a href="">About</a></li>
                     -->
-                </ul>
-            </div><!--/.nav-collapse -->
-        </div>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
     </div>
-</div>
+  </div>
