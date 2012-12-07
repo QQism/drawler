@@ -5,7 +5,6 @@ from registration.signals import user_registered
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, primary_key=True)
-    amount = models.DecimalField(decimal_places=2, max_digits=15, default=0.0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

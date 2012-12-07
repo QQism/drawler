@@ -11,7 +11,6 @@ class Migration(SchemaMigration):
         # Adding model 'UserProfile'
         db.create_table('users_userprofile', (
             ('user', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['auth.User'], unique=True, primary_key=True)),
-            ('amount', self.gf('django.db.models.fields.DecimalField')(default=0.0, max_digits=15, decimal_places=2)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('updated_at', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
         ))
@@ -62,7 +61,6 @@ class Migration(SchemaMigration):
         },
         'users.userprofile': {
             'Meta': {'object_name': 'UserProfile'},
-            'amount': ('django.db.models.fields.DecimalField', [], {'default': '0.0', 'max_digits': '15', 'decimal_places': '2'}),
             'created_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'user': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['auth.User']", 'unique': 'True', 'primary_key': 'True'})
