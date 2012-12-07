@@ -1,12 +1,10 @@
 from piston.handler import BaseHandler
 from piston.utils import rc, throttle
+from tastypie.resources import ModelResource
 
-from . import models
+from .models import ScraperSession
 
-class ScraperSessionHandler(BaseHandler):
-    model = models.ScraperSession
-    allowed_methods = ('GET', 'POST',)
-
-    def read(self, request, pk):
-        session = models.ScraperSession.objects.get(pk=pk)
-        return session
+class SessionResource(ModelResource):
+    class Meta:
+        queryset = ScraperSession.objects.all()
+        resource_name = 'session'

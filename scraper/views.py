@@ -1,34 +1,59 @@
 from django.shortcuts import render_to_response, redirect
 from django.http import HttpResponse
 from django.template import RequestContext
+from django.contrib.auth.decorators import login_required
+
 from models import ScraperProfile, ScraperSession
-from forms import ScrapingForm
+from forms import ScraperSessionForm, ScraperProfileForm
 import _opic
 import logging
 from django_rq import job, enqueue, get_connection
 import json
-
+import requests
 logger = logging.getLogger(__name__)
 
+@login_required
 def home(request):
+    """List out site profiles
     """
-    List out site profiles
-    """
-    profiles = ScraperProfile.objects.all()
+    profiles = request.user.scraperprofile_set.all()
+    #profiles = ScraperProfile.objects.all()
     return render_to_response('scraper/home.html',
                               {'profiles': profiles},
                               context_instance=RequestContext(request))
 
+
+@login_required
+def new_profile(request):
+    if request.method == 'GET':
+        form = ScraperProfileForm()
+    elif request.method == 'POST':
+        form = ScraperProfileForm(request.POST)
+        if form.is_valid():
+            data = form.data
+            profile = ScraperProfile(name=data['name'],
+                    url=data['url'],
+                    template=form['template'],
+                    keywords_text=form['keywords'].value(),
+                    user=request.user)
+            profile.save()
+            return redirect('scraper:home')
+        else:
+            pass
+    return render_to_response('scraper/new_profile.html',
+            {'form': form},
+            context_instance=RequestContext(request))
+
+
+@login_required
 def profile(request, profile_id):
-    """
-    Select the profile
+    """Select the profile
     Choose sites to crawl
     Select template
-
     """
     logger.info(request)
     profile = ScraperProfile.objects.get(pk=profile_id)
-    form = ScrapingForm()
+    form = ScraperSessionForm()
     sessions = ScraperSession.objects.filter(profile=profile).order_by('-created_at')
     return render_to_response('scraper/profile.html',
                               {
@@ -42,10 +67,10 @@ def sessions(request, profile_id):
     """
     """
     profile = ScraperProfile.objects.get(pk=profile_id)
-    form = ScrapingForm()
+    form = ScraperSessionForm()
     logger.info(request)
     if request.method == 'POST':
-        form = ScrapingForm(request.POST)
+        form = ScraperSessionForm(request.POST)
         if form.is_valid():
             new_session = ScraperSession(profile=profile,
                                          max_nodes=int(form.data['max_pages']),
@@ -80,7 +105,7 @@ def session(request, profile_id, session_id):
 
 def new_session(request, profile_id):
     profile = ScraperProfile.objects.get(pk=profile_id)
-    form = ScrapingForm()
+    form = ScraperSessionForm()
     sessions = ScraperSession.objects.filter(profile=profile).order_by('-created_at')
     return render_to_response('scraper/profile.html',
                               {
@@ -124,6 +149,10 @@ def extract_nodes(nodes, limit=100):
 def total_sessions(request):
     pass
 
+def request_callback_url(session):
+    """Righ after the scraping session finished, call the callback url"""
+    return requests.post(session.callback_url) if session.callback_url else None
+
 
 @job('default', connection=get_connection('default'), timeout=60000)
 def scrape(session_id):
@@ -144,6 +173,11 @@ def scrape(session_id):
     except Exception as ex:
         print ex
         session.status = 'F'
+        result = (0, 0) # no fetched pages, no kw found
     finally:
+        session.meta['fetched_pages'] = result[0]
+        session.meta['found_keywords'] = result[1]
+
         session.save()
+        request_callback_url(session)
 
