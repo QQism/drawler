@@ -6,6 +6,7 @@ import codecs
 import gzip
 from bs4 import BeautifulSoup
 import urllib
+import requests
 
 class Crawler(object):
     cookie = None
@@ -32,7 +33,9 @@ class Crawler(object):
 
         self.base_url = base_url
         self.br.addheaders = [('User-agent', user_agent)]
-        self.response = self.br.open(self.base_url).read()
+
+        if base_url:
+            self.response = self.br.open(self.base_url).read()
 
     def login(self):
         if self.login_form_attrs.has_key('id'):
@@ -65,9 +68,11 @@ class Crawler(object):
 
     def goto(self, url):
         # avoid bad urls
-        full_url = urllib.quote(url, safe="%/:=&?~#+!$,;'@()*[]")
-        self.response = self.process(self.br.open(full_url))
-        return self.response
+        #full_url = urllib.quote(url, safe="%/:=&?~#+!$,;'@()*[]")
+        #self.response = self.process(self.br.open(full_url))
+        self.response = requests.get(url, headers={'User-agent': self.default_user_agent},
+                timeout=30)
+        return self.response.content
 
     def process(self, response):
         if response.info().get('Content-Encoding') == 'gzip':
@@ -140,6 +145,8 @@ class TemplateProcessor(object):
     def call_childnode(self, node, instruction, level):
         #print node, level
         if len(instruction) == level:
+            # remove script content first
+            [x.extract() for x in node.find_all('script')]
             return node.text
         else:
             instruction_node = instruction[level]
