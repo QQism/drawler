@@ -136,6 +136,7 @@ def update(request, profile_id, session_id):
 
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
+
 def extract_nodes(nodes, limit=100):
     return sorted([(node[0], node[1]['history:opic'][0],
                     node[1]['text:keywords_count'][0],

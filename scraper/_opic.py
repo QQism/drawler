@@ -152,6 +152,7 @@ def visit_link(node, crawler=None, children_url_re=None, cache=None):
 def initial_values(node, node_count):
     node['cash'] = 1.0/node_count
     node['history'] = 0.0
+    node['keywords_count'] = 0
     node.setdefault('cache', [])
     return node
 
@@ -196,10 +197,16 @@ def distribute_cash(graph, frontiers, node, crawler, children_url_re, cache):
                     #log('child ', child)
                     update_node_cash(child, child_cash)
                 else:
-                    # frontier node
-                    child = generate_new_node(frontiers, child_name, non_children=True)
-                    child['cash'] = child_cash
-                    frontiers.append(child)
+                    child = get_node(frontiers, child_name)
+
+                    if child is not None:
+                        # existing frontier node
+                        update_node_cash(child, child_cash)
+                    else:
+                        # new frontier node
+                        child = generate_new_node(frontiers, child_name, non_children=True)
+                        child['cash'] = child_cash
+                        frontiers.append(child)
 
                 node.setdefault('cache', []).append(child)
 
@@ -261,8 +268,8 @@ def keywords_occurrences(node, keywords_re):
     return node['keywords_count']
 
 def calculate_kopic(opic, kw_occurrences, total_kw_occurrences):
-    if total_kw_occurrences != 0:
-        kopic = opic * (1 + float(kw_occurrences)/total_kw_occurrences)
+    if total_kw_occurrences != 0 and kw_occurrences != 0:
+        kopic = opic + (4 * float(kw_occurrences)/total_kw_occurrences)
     else:
         kopic = opic
 
@@ -340,16 +347,18 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
         total_occurrences = {}
         history = 0
         sum_kw = 0
+        checked_nodes = set()
         while True:
             """" the select node that has most cash """
             node = max(graph, key=lambda x: x['cash'])
-            if node == last_node or node['cash'] == 0:
+            if len(checked_nodes) == len(graph) and node['name'] in checked_nodes:
                 """
                 All cash has been distributed
                 """
                 break # break the loop, add more frontiers
             else:
-                last_node = node
+                #last_node = node
+                checked_nodes.add(node['name'])
 
             history += distribute_cash(graph, frontiers, node,
                                        crawler,
@@ -401,13 +410,15 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
         # reserve graph for the next crawling
         frontiers = sorted(frontiers,
                             key=lambda x: x.setdefault('cash', 0),
-                            reverse=True)
+                            reverse=False)
+
+        frontier_size = len(frontiers)
         graph_size = len(graph)
         available_added_nodes = max_nodes - graph_size
 
 
 
-        if available_added_nodes == 0:
+        if available_added_nodes == 0 or frontier_size == 0:
             """
             we hit the upper bound
             Try to calculate the keyword points
@@ -415,11 +426,12 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
             #total_occurances += sum([keywords_occurances(node, kw_re) for node in graph])
             break
         elif max_added_nodes > available_added_nodes:
-            graph.extend(frontiers[0:available_added_nodes])
+            new_nodes = [frontiers.pop()  for i in range(available_added_nodes)]
         else:
-            graph.extend(frontiers[0:max_added_nodes])
+            max_added_frontier_nodes = frontier_size if max_added_nodes > frontier_size else max_added_nodes
+            new_nodes = [frontiers.pop() for i in range(max_added_frontier_nodes)]
 
-        #raw_input()
+        graph.extend(new_nodes)
 
     graph = sorted(graph,
                    key=lambda x: x.setdefault('kopic', 0),
@@ -435,7 +447,7 @@ def start(domain='tuoitre.vn', template='<div id="divContent"><getme/></div>',
 #        log('Successfully')
 
     for x in graph:
-        if x.has_key('content') and x['content'] and x['keywords_count'] > 0:
+        if 'content' in x and x['content'] and x['keywords_count'] > 0:
 #            log(x['content'])
             log(x['keywords_count'])
 

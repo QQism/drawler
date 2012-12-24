@@ -66,4 +66,3 @@ def get_phrases_by_category(request, cat_code):
     return render_to_response('home.html',
                        locals(),
                        context_instance=RequestContext(request))
-

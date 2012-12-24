@@ -2,12 +2,14 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from db import get_table
-import pprint
-import sys, traceback
+import sys
+import traceback
 import json
 from users.models import User
-from django_rq import job, enqueue, get_connection
+from django_rq import job, get_connection
 import _opic
+import requests
+
 
 class ScraperProfile(models.Model):
     name = models.CharField('Name', max_length=255, null=False, blank=False)
@@ -30,9 +32,9 @@ class ScraperProfile(models.Model):
                                        self.keywords_text.split(',')])
         super(type(self), self).save(*args, **kwargs)
 
-
     def __unicode__(self):
         return self.name + ': ' + self.url + ', ' + self.keywords_text
+
 
 STATUS_CHOICES = (
     ('C', 'Completed'),
@@ -40,6 +42,7 @@ STATUS_CHOICES = (
     ('P', 'Processing'),
     ('F', 'Failed')
 )
+
 
 class ScraperSession(models.Model):
 
@@ -92,11 +95,9 @@ class ScraperSession(models.Model):
         return ('scraper.views.session', (), {'profile_id': str(self.profile.id),
                                               'session_id': str(self.id)})
 
-
     def save(self, *args, **kwargs):
         self.meta_text = json.dumps(self.meta)
         super(type(self), self).save(*args, **kwargs)
-
 
     def save_node(self, data):
         success = False
@@ -155,18 +156,18 @@ class ScraperSession(models.Model):
             for node in nodes:
                 try:
                     b.put(node['name'].encode('utf-8'), pack_node(node))
-                    print '()'*60
+                    print '()' * 60
                     print node['name']
-                    print '()'*60
+                    print '()' * 60
                 except Exception as e:
                     #print node
                     print 'ERRRRRRRRRRRRRRROOR'
                     #print node['name']
                     print node['name'], e
                     print "Exception in user code:"
-                    print '-'*60
+                    print '-' * 60
                     traceback.print_exc(file=sys.stdout)
-                    print '-'*60
+                    print '-' * 60
                     print 'end'
 
             print 'NOW SEND PATCH'
@@ -184,7 +185,7 @@ class ScraperSession(models.Model):
 
     def all_nodes(self, columns, exact=True, include_timestamp=True):
         nodes = [node for node in self.storage.scan(
-            columns=columns, timestamp=self.timestamp+1,
+            columns=columns, timestamp=self.timestamp + 1,
             include_timestamp=include_timestamp)
             if (not exact) or int(node[1][columns[0]][1]) == self.timestamp]
 
@@ -211,20 +212,21 @@ def scrape(session_id):
     profile = session.profile
     session.status = 'P'
     session.save()
+
     try:
         result = _opic.start(domain=profile.url,
-                    template=profile.template,
-                    max_nodes=session.max_nodes,
-                    max_added_nodes=session.max_added_nodes,
-                    keywords=profile.keywords,
-                    writer=session.save_node,
-                    cache=session.get_node)
+                             template=profile.template,
+                             max_nodes=session.max_nodes,
+                             max_added_nodes=session.max_added_nodes,
+                             keywords=profile.keywords,
+                             writer=session.save_node,
+                             cache=session.get_node)
 
         session.status = 'C'
     except Exception as ex:
         print ex
         session.status = 'F'
-        result = (0, 0) # no fetched pages, no kw found
+        result = (0, 0)  # no fetched pages, no kw found
     finally:
         session.meta['fetched_pages'] = result[0]
         session.meta['found_keywords'] = result[1]
