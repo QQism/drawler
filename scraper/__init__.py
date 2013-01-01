@@ -133,6 +133,8 @@ class TemplateProcessor(object):
         Extract content from document, followed by instructions
         """
         soup = BeautifulSoup(document)
+        soup = self.clean_up(soup)
+
         total_contents = []
         for instruction in self.instructions:
             #print instruction
@@ -145,9 +147,7 @@ class TemplateProcessor(object):
     def call_childnode(self, node, instruction, level):
         #print node, level
         if len(instruction) == level:
-            # remove script content first
-            [x.extract() for x in node.find_all('script')]
-            return node.text
+            return node.text.strip(' \t\r\n') # remove nonsense chars
         else:
             instruction_node = instruction[level]
             level += 1
@@ -156,6 +156,11 @@ class TemplateProcessor(object):
                                                        attrs=instruction_node.attrs)]
 
             return self.dearray(contents)
+
+    def clean_up(self, soup):
+        """get rid of trivial content"""
+        [x.extract() for x in soup.find_all('script')] # remove all script tags
+        return soup
 
     def dearray(self, elements):
         """ return the only element, *not* array """
