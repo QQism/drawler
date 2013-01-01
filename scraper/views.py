@@ -1,4 +1,6 @@
 from functools import wraps
+import json
+import logging
 
 from django.core import serializers
 from django.shortcuts import render_to_response, redirect
@@ -6,14 +8,14 @@ from django.http import HttpResponse
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from django_rq import job, enqueue, get_connection
+
+import requests
 
 from models import ScraperProfile, ScraperSession
 from forms import ScraperSessionForm, ScraperProfileForm
 import _opic
-import logging
-from django_rq import job, enqueue, get_connection
-import json
-import requests
+
 logger = logging.getLogger(__name__)
 
 from .xmldict import array_to_xml
@@ -100,9 +102,13 @@ def sessions(request, profile_id):
             items = request.POST.items()
             post = json.loads(items[0][0])
 
+            max_nodes = int(post['max_pages'])
+            max_added_nodes = max_nodes/4
+            max_added_nodes = 1 if max_added_nodes == 0 else max_added_nodes
+
             new_session = ScraperSession(profile=profile,
-                                         max_nodes=int(post['max_pages']),
-                                         max_added_nodes=int(post['pages_increment']),
+                                         max_nodes=max_nodes,
+                                         max_added_nodes=max_added_nodes,
                                          callback_url=post['callback_url'],
                                          timeout=int(post['timeout']))
             new_session.save()
@@ -112,9 +118,13 @@ def sessions(request, profile_id):
         else:
             form = ScraperSessionForm(request.POST)
             if form.is_valid():
+                max_nodes = int(post['max_pages'])
+                max_added_nodes = max_nodes/4
+                max_added_nodes = 1 if max_added_nodes == 0 else max_added_nodes
+
                 new_session = ScraperSession(profile=profile,
-                                             max_nodes=int(form.data['max_pages']),
-                                             max_added_nodes=int(form.data['pages_increment']),
+                                             max_nodes=max_nodes,
+                                             max_added_nodes=max_added_nodes,
                                              timeout=int(form.data['timeout']))
                 new_session.save()
                 #enqueue(scrape, session_id=new_session.pk)
