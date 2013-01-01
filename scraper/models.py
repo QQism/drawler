@@ -1,14 +1,18 @@
-from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from db import get_table
+import re
 import sys
 import traceback
 import json
-from users.models import User
+
+from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django_rq import job, get_connection
-import _opic
+
 import requests
+from db import get_table
+from users.models import User
+import _opic
+import increment
 
 
 class ScraperProfile(models.Model):
@@ -206,6 +210,26 @@ def queue_scraping(sender, **kwargs):
         new_session = kwargs['instance']
         scrape.delay(new_session.id)
 
+def parse_url_pattern(url):
+    r = re.compile(r'(?P<head>.*){{(?P<expression>.*)}}(?P<tail>.*)')
+    matches = re.match(url)
+    if matches
+        expression = matches.groupdict()['expression']
+        head = matches.groupdict()['head']
+        tail = matches.groupdict()['tail']
+
+        er = re.compile(r'(?P<min>\d+)(-{0,1})(?P<max>\d+)')
+        em = er.match(expression)
+
+        if em:
+            min_id = em['min']
+            max_id = em['max']
+            if not max_id:
+                max_id, min_id = min_id, 0
+
+            return {'head': head, 'tail': tail, 'min': min_id, 'max': max_id}
+
+    return None
 
 @job('default', connection=get_connection('default'), timeout=60000)
 def scrape(session_id):
@@ -215,13 +239,24 @@ def scrape(session_id):
     session.save()
 
     try:
-        result = _opic.start(domain=profile.url,
-                             template=profile.template,
-                             max_nodes=session.max_nodes,
-                             max_added_nodes=session.max_added_nodes,
-                             keywords=profile.keywords,
-                             writer=session.save_node,
-                             cache=session.get_node)
+        params = parse_url_pattern(profile.url)
+        if params:
+            result = increment.start(head=params['head'],
+                                     tail=params['tail'],
+                                     min_id=params['min'],
+                                     max_id=params['max'],
+                                     max_nodes=session.max_nodes,
+                                     template=profile.template,
+                                     writer=session.save_node,
+                                     cache=session.get_node)
+        else:
+            result = _opic.start(domain=profile.url,
+                                 template=profile.template,
+                                 max_nodes=session.max_nodes,
+                                 max_added_nodes=session.max_added_nodes,
+                                 keywords=profile.keywords,
+                                 writer=session.save_node,
+                                 cache=session.get_node)
 
         session.status = 'C'
     except Exception as ex:
