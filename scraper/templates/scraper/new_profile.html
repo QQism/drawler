@@ -5,7 +5,15 @@
     <fieldset>
       <legend>Create scraper profile</legend>
       {% csrf_token %}
-      {{ form.as_p }}
+      {% for field in form %}
+      <div class="control-group">
+      {{ field.label_tag }}
+      <div class="controls">
+      {{ field }}
+      <span class='helptext'>{{ field.help_text|safe }}</span>
+      </div>
+      </div>
+      {% endfor %}
       <!--<span class='error'>{{ form.errors.as_p }}</span>-->
       <input type='submit' class='btn' value='Create' name='Create' />
     </fieldset>

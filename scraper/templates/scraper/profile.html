@@ -61,6 +61,13 @@
 
         {% if nodes %}
         <h2>Results</h2>
+        <div class='btn-group'>
+          <a href='#' class='btn dropdown-toggle' data-toggle='dropdown'>Download<span class='caret'></span></a>
+          <ul class='dropdown-menu'>
+          <li><a href='{% url scraper:session_result profile.pk current_session.pk 'xml' %}'>XML</a></li>
+          <li><a href='{% url scraper:session_result profile.pk current_session.pk 'json' %}'>JSON</a></li>
+          </ul>
+        </div>
         <div class="accordion scraping-result" id="accordion2">
             {% for node in nodes %}
             <div class="accordion-group">

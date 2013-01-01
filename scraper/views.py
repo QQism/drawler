@@ -16,6 +16,8 @@ import json
 import requests
 logger = logging.getLogger(__name__)
 
+from .xmldict import array_to_xml
+
 def http_basic_auth(func):
     @wraps(func)
     def _decorator(request, *args, **kwargs):
@@ -185,8 +187,42 @@ def extract_nodes(nodes, limit=100):
                   reverse=True)[:limit]
 
 
+def result(request, profile_id, session_id, format):
+    session = ScraperSession.objects.get(pk=session_id)
+    columns = ['text:content',]
+    nodes = session.all_nodes(columns, include_timestamp=True)
+    mimetype = 'application/' + format
+    if format == 'xml':
+        _nodes = [wrap_node(node, for_xml=True) for node in nodes]
+        result = pack_nodes(_nodes)
+    elif format == 'json':
+        _nodes = [wrap_node(node) for node in nodes]
+        result = json.dumps(_nodes, ensure_ascii=False)
+    return HttpResponse(result, mimetype=mimetype)
+
 def total_sessions(request):
     pass
+
+def pack_nodes(nodes):
+    return array_to_xml(nodes, 'node')
+
+def wrap_node(node, for_xml=False):
+    _node = {'url': node[0]}
+
+    _ex = {}
+    for key,value in node[1].iteritems():
+        # keys: 'text:content', need 'content'
+        kparts = key.split(':')
+        kparts.reverse()
+        _key = kparts[0]
+        if for_xml:
+            text = '<![CDATA[' + value[0] + ']]>'
+        else:
+            text = value[0]
+        _ex[_key] = {'value': text, 'timestamp': value[1]}
+
+    _node.update(_ex)
+    return _node
 
 def request_callback_url(session):
     """Righ after the scraping session finished, call the callback url"""

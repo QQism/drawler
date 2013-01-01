@@ -13,11 +13,12 @@ import requests
 
 class ScraperProfile(models.Model):
     name = models.CharField('Name', max_length=255, null=False, blank=False)
-    url = models.URLField('URL', max_length=200, null=False, blank=False)
+    url = models.CharField('URL', max_length=255, null=False, blank=False)
     template = models.TextField('Template', blank=True, default='')
     keywords_text = models.TextField('Keywords', blank=True, default='')
 
     user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
