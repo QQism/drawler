@@ -213,7 +213,7 @@ def queue_scraping(sender, **kwargs):
 def parse_url_pattern(url):
     r = re.compile(r'(?P<head>.*){{(?P<expression>.*)}}(?P<tail>.*)')
     matches = re.match(url)
-    if matches
+    if matches:
         expression = matches.groupdict()['expression']
         head = matches.groupdict()['head']
         tail = matches.groupdict()['tail']
