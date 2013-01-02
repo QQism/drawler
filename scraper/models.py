@@ -111,7 +111,8 @@ class ScraperSession(models.Model):
             #if hasattr(node['content'], 'encode'):
             #    content = node['content'].encode('utf-8')
             #else:
-            content = (u' '.join(node['content']))
+            #content = (u' '.join(node['content']))
+            content = unicode(json.dumps(node['content'], ensure_ascii=False))
             #if content:
             #    print content.encode('utf-8')
             if isinstance(node['raw_content'], unicode):
@@ -212,7 +213,7 @@ def queue_scraping(sender, **kwargs):
 
 def parse_url_pattern(url):
     r = re.compile(r'(?P<head>.*){{(?P<expression>.*)}}(?P<tail>.*)')
-    matches = re.match(url)
+    matches = r.match(url)
     if matches:
         expression = matches.groupdict()['expression']
         head = matches.groupdict()['head']
@@ -222,12 +223,13 @@ def parse_url_pattern(url):
         em = er.match(expression)
 
         if em:
-            min_id = em['min']
-            max_id = em['max']
+            em_dict = em.groupdict()
+            min_id = em_dict['min']
+            max_id = em_dict['max']
             if not max_id:
                 max_id, min_id = min_id, 0
 
-            return {'head': head, 'tail': tail, 'min': min_id, 'max': max_id}
+            return {'head': head, 'tail': tail, 'min': int(min_id), 'max': int(max_id)}
 
     return None
 
@@ -260,6 +262,7 @@ def scrape(session_id):
 
         session.status = 'C'
     except Exception as ex:
+        traceback.print_exc(file=sys.stdout)
         print ex
         session.status = 'F'
         result = (0, 0)  # no fetched pages, no kw found

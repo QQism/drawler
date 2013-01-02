@@ -96,7 +96,6 @@ def sessions(request, profile_id):
     profile = ScraperProfile.objects.get(pk=profile_id)
     form = ScraperSessionForm()
     logger.info(request)
-    print request
     if request.method == 'POST':
         if request.META['HTTP_ACCEPT'] == 'application/json':
             items = request.POST.items()
@@ -118,7 +117,7 @@ def sessions(request, profile_id):
         else:
             form = ScraperSessionForm(request.POST)
             if form.is_valid():
-                max_nodes = int(post['max_pages'])
+                max_nodes = int(form.data['max_pages'])
                 max_added_nodes = max_nodes/4
                 max_added_nodes = 1 if max_added_nodes == 0 else max_added_nodes
 

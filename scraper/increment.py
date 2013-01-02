@@ -14,7 +14,7 @@ def initial_values(node):
 
 def start(head, tail, min_id=0, max_id=0, template='', max_nodes=20, writer=None, cache=None):
     crawler = Crawler()
-    tp = TemplateProcessor(tp)
+    tp = TemplateProcessor(template)
     nodes = []
     node_count = 0
     for step in range(min_id, max_id+1):
@@ -26,14 +26,18 @@ def start(head, tail, min_id=0, max_id=0, template='', max_nodes=20, writer=None
 
         # initial node
         url = build_url(head, tail, step)
+
         node = initial_values({'name': url})
 
         # crawling
+        print 'cawling ' + str(url)
         response = crawler.goto(url)
         node['raw_content'] = response
 
         # scraping, extraction
-        content = tp.extract(response.content)
+        content = tp.extract(response)
+        print content
+        node['content'] = content
 
         # append into the list
         nodes.append(node)
@@ -44,4 +48,5 @@ def start(head, tail, min_id=0, max_id=0, template='', max_nodes=20, writer=None
         # saving
         if writer is not None:
             writer(node)
-    return
+
+    return len(nodes), 0
