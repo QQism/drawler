@@ -1,7 +1,13 @@
+# -*- coding: utf-8 -*-
+# Standard libraries
 from functools import wraps
 import json
 import logging
+import os
+import zipfile
+from StringIO import StringIO
 
+# django libraries
 from django.core import serializers
 from django.shortcuts import render_to_response, redirect
 from django.http import HttpResponse
@@ -10,11 +16,14 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django_rq import job, enqueue, get_connection
 
+# 3rd libraries
 import requests
 
+# app libraries
 from models import ScraperProfile, ScraperSession
 from forms import ScraperSessionForm, ScraperProfileForm
 import _opic
+
 
 logger = logging.getLogger(__name__)
 
@@ -204,10 +213,30 @@ def result(request, profile_id, session_id, format):
     if format == 'xml':
         _nodes = [wrap_node(node, for_xml=True) for node in nodes]
         result = pack_nodes(_nodes)
+
+        response = HttpResponse(result, mimetype=mimetype)
     elif format == 'json':
         _nodes = [wrap_node(node) for node in nodes]
         result = json.dumps(_nodes, ensure_ascii=False)
-    return HttpResponse(result, mimetype=mimetype)
+
+        response = HttpResponse(result, mimetype=mimetype)
+    elif format == 'zip':
+        _nodes = [wrap_node(node, for_xml=True) for node in nodes]
+        result = pack_nodes(_nodes)
+
+        zipdata = StringIO()
+        zipf = zipfile.ZipFile(zipdata, mode='w')
+        name = str(session.pk) + '.xml'
+
+        zipf.writestr(name, result)
+        zipf.close()
+        zipdata.seek(0)
+
+        response = HttpResponse(zipdata.read())
+        response['Content-Disposition'] = 'attachment; filename=' + name + '.zip'
+        response['Content-Type'] = 'application/x-zip'
+
+    return response
 
 def total_sessions(request):
     pass

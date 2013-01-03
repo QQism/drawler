@@ -9,15 +9,15 @@
     <div class="span12 hero-unit">
         {% block breadcrumbs %}
         {% breadcrumb "Home" "/" %}
-        {% breadcrumb "Profile" "scraper:home"  %}
+        {% breadcrumb "Profile" "scraper:home" %}
         {% endblock %}
+
         {% render_breadcrumbs %}
 
         {% block scraper-content %}
         <ul class='nav nav-pills'>
         <li class='active'><a href="{%url scraper:new_profile %}">Create new profile</a></li>
         </ul>
-        {% endblock %}
         <ul>
         {% if profiles %}
         {% for site in profiles %}
@@ -25,6 +25,7 @@
         {% endfor %}
         {% endif %}
     </ul>
+        {% endblock %}
     </div>
 </div>
 {% endblock %}
