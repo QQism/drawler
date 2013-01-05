@@ -66,6 +66,7 @@
           <ul class='dropdown-menu'>
           <li><a href='{% url scraper:session_result profile.pk current_session.pk 'xml' %}'>XML</a></li>
           <li><a href='{% url scraper:session_result profile.pk current_session.pk 'json' %}'>JSON</a></li>
+          <li><a href='{% url scraper:session_result profile.pk current_session.pk 'zip' %}'>JSON</a></li>
           </ul>
         </div>
         <div class="accordion scraping-result" id="accordion2">

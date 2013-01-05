@@ -38,7 +38,7 @@ class ScraperProfile(models.Model):
         super(type(self), self).save(*args, **kwargs)
 
     def __unicode__(self):
-        return self.name + ': ' + self.url + ', ' + self.keywords_text
+        return self.name + ': '  + self.keywords_text
 
 
 STATUS_CHOICES = (
