@@ -21,6 +21,7 @@
             {% for word in profile.keywords %}
             {{ word }}
             {% endfor %}
+            <a  class='btn' href="{% url scraper:update_profile profile.pk %}">Edit</a></li>
         </div>
     <div class="span2 side-column well">
         <ul class="nav nav-pills nav-stacked">
@@ -55,7 +56,7 @@
         <form action='{% url scraper:sessions profile.pk %}' method='POST'>
             {% csrf_token %}
             {{ form.as_p }}
-            <input type='submit' value='Scrape'/>
+            <input class='btn btn-primary' type='submit' value='Scrape'/>
         </form>
         {% endif %}
 

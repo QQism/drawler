@@ -3,7 +3,7 @@
 <div class='form'>
   <form action='' class='form-search' method='post'>
     <fieldset>
-      <legend>Create scraper profile</legend>
+      <legend>{{ action.title }} scraper profile</legend>
       {% csrf_token %}
       {% for field in form %}
       <div class="control-group">
@@ -15,7 +15,7 @@
       </div>
       {% endfor %}
       <!--<span class='error'>{{ form.errors.as_p }}</span>-->
-      <input type='submit' class='btn' value='Create' name='Create' />
+      <input type='submit' class='btn btn-primary' value='Create' name='Create' />
     </fieldset>
   </form>
 </div>

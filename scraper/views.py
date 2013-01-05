@@ -74,7 +74,35 @@ def new_profile(request):
         else:
             pass
     return render_to_response('scraper/new_profile.html',
-            {'form': form},
+                              {'form': form, 'action': 'create'},
+            context_instance=RequestContext(request))
+
+
+@http_basic_auth
+@login_required
+def update_profile(request, profile_id):
+    profile = ScraperProfile.objects.get(pk=profile_id)
+    if request.method == 'GET':
+        data = {'name': profile.name,
+                'url': profile.url,
+                'template': profile.template, 
+                'keywords': profile.keywords_text}
+        form = ScraperProfileForm(data)
+    elif request.method == 'POST':
+        form = ScraperProfileForm(request.POST)
+        if form.is_valid():
+            data = form.data
+
+            profile.name = data.name
+            profile.url = data.url
+            profile.template = data.template
+            profile.keywords_text = data.keywords
+            profile.save()
+            return redirect('scraper:home')
+        else:
+            pass
+    return render_to_response('scraper/new_profile.html',
+                              {'form': form, 'action': 'edit'},
             context_instance=RequestContext(request))
 
 @http_basic_auth
