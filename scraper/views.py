@@ -57,22 +57,42 @@ def home(request):
 
 @http_basic_auth
 @login_required
+@csrf_exempt
 def new_profile(request):
     if request.method == 'GET':
         form = ScraperProfileForm()
     elif request.method == 'POST':
-        form = ScraperProfileForm(request.POST)
-        if form.is_valid():
-            data = form.data
+
+        if request.META['HTTP_ACCEPT'] == 'application/json':
+            items = request.POST.items()
+            data = json.loads(items[0][0])
             profile = ScraperProfile(name=data['name'],
                     url=data['url'],
-                    template=form['template'].value(),
-                    keywords_text=form['keywords'].value(),
+                    template=data['template'],
+                    keywords_text=data['keywords'],
                     user=request.user)
             profile.save()
-            return redirect('scraper:home')
+            profile_dict = {'id': profile.pk,
+                    'name': profile.name,
+                    'url': profile.url,
+                    'template': profile.template,
+                    'keywords': profile.keywords}
+            response = json.dumps(profile_dict)
+            return HttpResponse(response, mimetype='application/json')
+
         else:
-            pass
+            form = ScraperProfileForm(request.POST)
+            if form.is_valid():
+                data = form.data
+                profile = ScraperProfile(name=data['name'],
+                        url=data['url'],
+                        template=data['template'],
+                        keywords_text=data['keywords'],
+                        user=request.user)
+                profile.save()
+                return redirect('scraper:home')
+            else:
+                pass
     return render_to_response('scraper/new_profile.html',
                               {'form': form, 'action': 'create'},
             context_instance=RequestContext(request))

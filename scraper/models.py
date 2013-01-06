@@ -34,7 +34,7 @@ class ScraperProfile(models.Model):
     def save(self, *args, **kwargs):
         self.keywords_text = ','.join([keyword.strip()
                                        for keyword in
-                                       self.keywords_text.split(',')])
+                                       self.keywords_text.split(',') if keyword])
         super(type(self), self).save(*args, **kwargs)
 
     def __unicode__(self):

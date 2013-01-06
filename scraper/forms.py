@@ -14,7 +14,7 @@ class ScraperSessionForm(forms.Form):
     required_css_class = 'required'
 
     max_pages = forms.IntegerField()
-    pages_increment = forms.IntegerField()
+#    pages_increment = forms.IntegerField()
     callback_url = forms.URLField(required=False)
     timeout = forms.IntegerField(required=False) # milisecond
 
